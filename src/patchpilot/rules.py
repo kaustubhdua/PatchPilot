@@ -88,10 +88,6 @@ def evaluate_risk(
         findings.append(_finding(rule, severity, title, detail, evidence))
 
     sensitive = [item.path for item in changes if any(term in item.path.lower() for term in SENSITIVE)]
-        item.path
-        for item in changes
-        if any(term in item.path.lower() for term in SENSITIVE)
-    ]
     if sensitive:
         add(
             "sensitive-path",
