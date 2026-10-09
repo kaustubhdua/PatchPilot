@@ -56,10 +56,7 @@ def test_multiple_files_and_test_detection():
 
 
 def test_binary_file_is_counted_without_fake_line_counts():
-    diff = (
-        "diff --git a/image.png b/image.png\n"
-        "Binary files a/image.png and b/image.png differ\n"
-    )
+    diff = "diff --git a/image.png b/image.png\nBinary files a/image.png and b/image.png differ\n"
     result = run(diff)
     assert result.files_changed == 1
     assert result.additions == 0
