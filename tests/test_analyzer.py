@@ -118,6 +118,10 @@ def test_malformed_hunk_does_not_count_fake_lines():
 
 
 def test_quoted_path_is_unquoted():
-    diff = 'diff --git a/"file name.py" b/"file name.py"\n--- a/"file name.py"\n+++ b/"file name.py"\n@@ -0,0 +1 @@\n+safe()\n'
+    diff = (
+        'diff --git a/"file name.py" b/"file name.py"\\n'
+        '--- a/"file name.py"\\n+++ b/"file name.py"\\n'
+        "@@ -0,0 +1 @@\\n+safe()\\n"
+    )
     parsed = parse_unified_diff(diff)
     assert parsed[0].path == "file name.py"
