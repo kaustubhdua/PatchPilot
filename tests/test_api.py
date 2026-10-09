@@ -27,8 +27,5 @@ def test_analyze_sensitive_diff():
 
 def test_validates_diff_size_and_extra_fields():
     assert client.post("/v1/analyze", json={"diff": ""}).status_code == 422
-    assert (
-        client.post("/v1/analyze", json={"diff": "+ok", "unexpected": True}).status_code
-        == 422
-    )
+    assert client.post("/v1/analyze", json={"diff": "+ok", "unexpected": True}).status_code == 422
     assert client.post("/v1/analyze", json={"diff": "+" + "x" * 500001}).status_code == 422
