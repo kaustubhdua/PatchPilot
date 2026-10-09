@@ -129,7 +129,11 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             )
         )
 
-    sensitive = [\n        item.path\n        for item in changes\n        if any(term in item.path.lower() for term in SENSITIVE)\n    ]
+    sensitive = [
+        item.path
+        for item in changes
+        if any(term in item.path.lower() for term in SENSITIVE)
+    ]
     if sensitive:
         add(
             "sensitive-path",
