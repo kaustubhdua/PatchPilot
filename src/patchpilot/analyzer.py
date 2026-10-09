@@ -129,11 +129,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             )
         )
 
-    sensitive = [
-        item.path
-        for item in changes
-        if any(term in item.path.lower() for term in SENSITIVE)
-    ]
+    sensitive = [item.path for item in changes if any(term in item.path.lower() for term in SENSITIVE)]
     if sensitive:
         add(
             "sensitive-path",
@@ -145,8 +141,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         )
 
     dependencies = [
-        item.path for item in changes
-        if any(term in item.path.lower() for term in DEPENDENCIES)
+        item.path for item in changes if any(term in item.path.lower() for term in DEPENDENCIES)
     ]
     if dependencies:
         add(
@@ -184,7 +179,8 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             add(rule, "high", 18, title, detail, matches)
 
     production = [
-        item for item in changes
+        item
+        for item in changes
         if not item.is_test and not item.path.lower().endswith((".md", ".txt", ".rst"))
     ]
     if production and not any(item.is_test for item in changes):
@@ -198,12 +194,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         )
 
     score = min(score, 100)
-    level = (
-        "low" if score < 25
-        else "medium" if score < 50
-        else "high" if score < 75
-        else "critical"
-    )
+    level = "low" if score < 25 else "medium" if score < 50 else "high" if score < 75 else "critical"
     if not findings:
         findings.append(
             Finding(
@@ -215,11 +206,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             )
         )
 
-    extensions = {
-        item.path.rsplit(".", 1)[-1].lower()
-        for item in changes
-        if "." in item.path
-    }
+    extensions = {item.path.rsplit(".", 1)[-1].lower() for item in changes if "." in item.path}
     recommendations = []
     if "py" in extensions:
         recommendations.append("Run relevant pytest tests and add regression coverage.")
