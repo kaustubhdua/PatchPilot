@@ -10,6 +10,7 @@ PatchPilot inspects a unified diff and returns changed-file statistics, evidence
 
 - [x] FastAPI service with health and analysis endpoints
 - [x] Request validation and bounded diff input
+- [x] Per-process analysis rate limit and readiness probe
 - [x] Deterministic risk heuristics with evidence
 - [x] Unit and API regression tests
 - [x] CI for lint, formatting and tests
@@ -51,7 +52,7 @@ The CLI reads a patch from a file or standard input, prints evidence-backed find
 
 ## API
 
-`GET /health` returns service health.
+`GET /health` returns liveness; `GET /ready` returns readiness for the stateless MVP.
 
 `POST /v1/analyze` accepts JSON:
 
@@ -64,7 +65,7 @@ The CLI reads a patch from a file or standard input, prints evidence-backed find
 }
 ```
 
-The diff must be between 1 and 500,000 characters. Unknown request fields are rejected. The response contains a score from 0–100, a broad risk level, per-file line counts, findings with rule IDs and evidence, and suggested tests.
+The diff must be between 1 and 500,000 characters. Unknown request fields are rejected. Analysis requests are limited to 60 per client IP per 60-second window per application process; excess requests receive HTTP 429 and a `Retry-After` header. This in-memory limit is a basic safety rail, not a substitute for a shared gateway limiter in multi-worker or public deployments. The response contains a score from 0–100, a broad risk level, per-file line counts, findings with rule IDs and evidence, and suggested tests.
 
 ## Rules and limitations
 
