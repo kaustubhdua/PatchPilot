@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from patchpilot.models import AnalyzeRequest, AnalyzeResponse, FileChange, Finding
+from patchpilot.models import AnalyzeRequest, AnalyzeResponse, FileChange
 from patchpilot.parser import parse_unified_diff
 from patchpilot.rules import evaluate_risk, is_test_path
 
