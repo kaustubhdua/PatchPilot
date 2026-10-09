@@ -24,7 +24,7 @@ app = FastAPI(
 
 
 class InMemoryRateLimiter:
-    """Small per-process sliding-window limiter; use a shared gateway in multi-worker deployments."""
+    """Per-process sliding-window limiter; use a shared gateway with multiple workers."""
 
     def __init__(self, limit: int = 60, window_seconds: int = 60) -> None:
         self.limit = limit
@@ -44,7 +44,11 @@ class InMemoryRateLimiter:
             hits.append(timestamp)
             # Avoid unbounded growth from one-off client addresses.
             if len(self._hits) > 10_000:
-                expired = [item for item, values in self._hits.items() if not values or values[-1] <= cutoff]
+                expired = [
+                    item
+                    for item, values in self._hits.items()
+                    if not values or values[-1] <= cutoff
+                ]
                 for item in expired[:5_000]:
                     self._hits.pop(item, None)
             return True
