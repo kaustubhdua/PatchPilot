@@ -7,8 +7,8 @@ def test_cli_reads_diff_from_stdin_and_prints_json(monkeypatch, capsys):
     monkeypatch.setattr(
         "sys.stdin",
         __import__("io").StringIO(
-            "diff --git a/app.py b/app.py\\n"
-            "--- a/app.py\\n+++ b/app.py\\n@@ -0,0 +1 @@\\n+safe()\\n"
+            "diff --git a/app.py b/app.py\n"
+            "--- a/app.py\n+++ b/app.py\n@@ -0,0 +1 @@\n+safe()\n"
         ),
     )
     assert main(["analyze", "--json"]) == 0
