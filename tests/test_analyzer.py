@@ -1,14 +1,76 @@
 from patchpilot.analyzer import analyze
 from patchpilot.models import AnalyzeRequest
 
-def test_risky_pattern_has_evidence():
-    result = analyze(AnalyzeRequest(diff="diff --git a/runner.py b/runner.py\n+eval(user_input)"))
-    assert result.risk_score > 0
-    assert any("risky-pattern" in f.rule_id for f in result.findings)
-    assert result.findings[0].evidence
+
+def run(diff: str):
+    return analyze(AnalyzeRequest(diff=diff))
+
+
+def test_risky_pattern_only_matches_added_lines():
+    result = run(
+        "diff --git a/runner.py b/runner.py\n"
+        "--- a/runner.py\n+++ b/runner.py\n@@ -1 +1 @@\n"
+        "-eval(old_input)\n+safe_call(user_input)\n"
+    )
+    assert not any(f.rule_id == "dynamic-evaluation" for f in result.findings)
+
+
+def test_added_risky_pattern_has_line_evidence():
+    result = run(
+        "diff --git a/runner.py b/runner.py\n"
+        "--- a/runner.py\n+++ b/runner.py\n@@ -1 +1 @@\n"
+        "-safe_call()\n+eval(user_input)\n"
+    )
+    finding = next(f for f in result.findings if f.rule_id == "dynamic-evaluation")
+    assert "eval(user_input)" in finding.evidence
+    assert finding.severity == "high"
+
+
+def test_counts_only_hunk_lines_and_ignores_headers():
+    result = run(
+        "diff --git a/a.py b/a.py\n"
+        "index abc..def 100644\n"
+        "--- a/a.py\n+++ b/a.py\n@@ -1,2 +1,2 @@\n"
+        "-old()\n+new()\n context()\n"
+    )
+    assert result.files_changed == 1
+    assert result.additions == 1
+    assert result.deletions == 1
+
+
+def test_multiple_files_and_test_detection():
+    result = run(
+        "diff --git a/src/app.py b/src/app.py\n"
+        "--- a/src/app.py\n+++ b/src/app.py\n@@ -0,0 +1 @@\n+run()\n"
+        "diff --git a/tests/test_app.py b/tests/test_app.py\n"
+        "--- a/tests/test_app.py\n+++ b/tests/test_app.py\n@@ -0,0 +1 @@\n+def test_run(): pass\n"
+    )
+    assert result.files_changed == 2
+    assert [f.is_test for f in result.files] == [False, True]
+    assert not any(f.rule_id == "no-test-files" for f in result.findings)
+
+
+def test_binary_file_is_counted_without_fake_line_counts():
+    result = run("diff --git a/image.png b/image.png\nBinary files a/image.png and b/image.png differ\n")
+    assert result.files_changed == 1
+    assert result.additions == 0
+    assert result.deletions == 0
+
 
 def test_empty_file_list_stays_low_and_explains_limit():
-    result = analyze(AnalyzeRequest(diff="+some text without a git file header"))
+    result = run("+some text without a git file header")
     assert result.files_changed == 0
     assert result.risk_level == "low"
     assert result.disclaimer
+
+
+def test_sensitive_path_and_dependency_rules():
+    result = run(
+        "diff --git a/src/auth.py b/src/auth.py\n"
+        "--- a/src/auth.py\n+++ b/src/auth.py\n@@ -0,0 +1 @@\n+authenticate()\n"
+        "diff --git a/requirements.txt b/requirements.txt\n"
+        "--- a/requirements.txt\n+++ b/requirements.txt\n@@ -1 +1 @@\n+safe-package==1.0\n"
+    )
+    rules = {finding.rule_id for finding in result.findings}
+    assert "sensitive-path" in rules
+    assert "dependency-change" in rules
