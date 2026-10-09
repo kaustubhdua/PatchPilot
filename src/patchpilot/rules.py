@@ -52,6 +52,10 @@ def is_test_path(path: str) -> bool:
     )
 
 
+def _is_sensitive_path(path: str) -> bool:
+    return any(term in path.lower() for term in SENSITIVE)
+
+
 def _finding(
     rule_id: str,
     severity: str,
@@ -87,7 +91,7 @@ def evaluate_risk(
         score += points
         findings.append(_finding(rule, severity, title, detail, evidence))
 
-    sensitive = [item.path for item in changes if any(term in item.path.lower() for term in SENSITIVE)]
+    sensitive = [item.path for item in changes if _is_sensitive_path(item.path)]
     if sensitive:
         add(
             "sensitive-path",
