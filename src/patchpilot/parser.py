@@ -33,7 +33,6 @@ def _unquote_git_path(path: str) -> str:
         body = path[1:-1]
         replacements = {
             r"\\": "\\",
-            r'\"': '"',
             r"\t": "\t",
             r"\n": "\n",
         }
