@@ -37,6 +37,18 @@ uvicorn patchpilot.api:app --reload
 
 Open the interactive API docs at http://127.0.0.1:8000/docs.
 
+## Command-line usage
+
+Analyze a saved patch locally without starting the API:
+
+```bash
+patchpilot analyze --diff-file change.diff
+git diff origin/main...HEAD | patchpilot analyze --title "Review current branch"
+git diff origin/main...HEAD | patchpilot analyze --json
+```
+
+The CLI reads a patch from a file or standard input, prints evidence-backed findings, and exits with a non-zero status for invalid input. It does not clone a repository or execute patch contents.
+
 ## API
 
 `GET /health` returns service health.
