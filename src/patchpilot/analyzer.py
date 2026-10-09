@@ -19,19 +19,19 @@ DEPENDENCIES = (
 )
 RISKY_PATTERNS = (
     (
-        re.compile(r"\\beval\\s*\\("),
+        re.compile(r"\beval\s*\("),
         "dynamic-evaluation",
         "Dynamic evaluation pattern",
         "Check whether untrusted input can reach eval().",
     ),
     (
-        re.compile(r"\\bshell\\s*=\\s*true\\b", re.I),
+        re.compile(r"\bshell\s*=\s*true\b", re.I),
         "shell-execution",
         "Shell execution enabled",
         "Review command construction and input handling.",
     ),
     (
-        re.compile(r"\\bverify\\s*=\\s*false\\b", re.I),
+        re.compile(r"\bverify\s*=\s*false\b", re.I),
         "tls-verification-disabled",
         "TLS verification disabled",
         "Do not disable certificate checks in production.",
