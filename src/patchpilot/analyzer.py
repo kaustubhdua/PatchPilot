@@ -81,6 +81,10 @@ def _parse_diff(diff: str) -> list[_ParsedFile]:
     return files
 
 
+def _is_sensitive_path(path: str) -> bool:
+    return any(term in path.lower() for term in SENSITIVE)
+
+
 def _is_test_path(path: str) -> bool:
     low = path.lower().replace("\\", "/")
     name = low.rsplit("/", 1)[-1]
@@ -129,7 +133,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             )
         )
 
-    sensitive = [item.path for item in changes if any(term in item.path.lower() for term in SENSITIVE)]
+    sensitive = [item.path for item in changes if _is_sensitive_path(item.path)]
     if sensitive:
         add(
             "sensitive-path",
@@ -194,7 +198,14 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         )
 
     score = min(score, 100)
-    level = "low" if score < 25 else "medium" if score < 50 else "high" if score < 75 else "critical"
+    if score < 25:
+        level = "low"
+    elif score < 50:
+        level = "medium"
+    elif score < 75:
+        level = "high"
+    else:
+        level = "critical"
     if not findings:
         findings.append(
             Finding(
