@@ -1,5 +1,6 @@
 from patchpilot.analyzer import analyze
 from patchpilot.models import AnalyzeRequest
+from patchpilot.parser import parse_unified_diff
 
 
 def run(diff: str):
@@ -46,7 +47,7 @@ def test_multiple_files_and_test_detection():
         "diff --git a/src/app.py b/src/app.py\n"
         "--- a/src/app.py\n+++ b/src/app.py\n@@ -0,0 +1 @@\n+run()\n"
         "diff --git a/tests/test_app.py b/tests/test_app.py\n"
-        "--- a/tests/test_app.py\n+++ b/tests/test_app.py\n@@ -0,0 +1 @@\n"
+        "--- a/tests/test_app.py b/tests/test_app.py\n@@ -0,0 +1 @@\n"
         "+def test_run(): pass\n"
     )
     result = run(diff)
@@ -81,3 +82,42 @@ def test_sensitive_path_and_dependency_rules():
     rules = {finding.rule_id for finding in result.findings}
     assert "sensitive-path" in rules
     assert "dependency-change" in rules
+
+
+def test_rename_metadata_keeps_new_path_and_old_path():
+    diff = (
+        "diff --git a/old name.py b/new name.py\n"
+        "similarity index 98%\nrename from old name.py\nrename to new name.py\n"
+        "--- a/old name.py\n+++ b/new name.py\n"
+        "@@ -1 +1 @@\n-old()\n+new()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert len(parsed) == 1
+    assert parsed[0].old_path == "old name.py"
+    assert parsed[0].path == "new name.py"
+    assert parsed[0].renamed
+
+
+def test_new_and_deleted_file_metadata():
+    diff = (
+        "diff --git a/new.py b/new.py\nnew file mode 100644\n"
+        "--- /dev/null\n+++ b/new.py\n@@ -0,0 +1 @@\n+new()\n"
+        "diff --git a/old.py b/old.py\ndeleted file mode 100644\n"
+        "--- a/old.py\n+++ /dev/null\n@@ -1 +0,0 @@\n-old()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].new_file
+    assert parsed[1].deleted
+    assert parsed[1].path == "old.py"
+
+
+def test_malformed_hunk_does_not_count_fake_lines():
+    diff = "diff --git a/a.py b/a.py\n@@ nonsense @@\n+not counted\n"
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].additions == 0
+
+
+def test_quoted_path_is_unquoted():
+    diff = 'diff --git a/"file name.py" b/"file name.py"\n--- a/"file name.py"\n+++ b/"file name.py"\n@@ -0,0 +1 @@\n+safe()\n'
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].path == "file name.py"
