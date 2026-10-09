@@ -119,19 +119,9 @@ def test_malformed_hunk_does_not_count_fake_lines():
 
 def test_quoted_path_is_unquoted():
     diff = (
-        'diff --git a/"file name.py" b/"file name.py"\\n'
-        '--- a/"file name.py"\\n+++ b/"file name.py"\\n'
-        "@@ -0,0 +1 @@\\n+safe()\\n"
-    )
-    parsed = parse_unified_diff(diff)
-    assert parsed[0].path == "file name.py"
-
-
-def test_quoted_path_is_unquoted():
-    diff = (
-        'diff --git a/"file name.py" b/"file name.py"\\n'
-        '--- a/"file name.py"\\n+++ b/"file name.py"\\n'
-        "@@ -0,0 +1 @@\\n+safe()\\n"
+        'diff --git a/"file name.py" b/"file name.py"\n'
+        '--- a/"file name.py"\n+++ b/"file name.py"\n'
+        "@@ -0,0 +1 @@\n+safe()\n"
     )
     parsed = parse_unified_diff(diff)
     assert parsed[0].path == "file name.py"
@@ -139,11 +129,11 @@ def test_quoted_path_is_unquoted():
 
 def test_parser_ignores_header_lines_outside_hunks():
     diff = (
-        "diff --git a/app.py b/app.py\\n"
-        "index 123..456 100644\\n"
-        "--- a/app.py\\n+++ b/app.py\\n"
-        "similarity index 90%\\n"
-        "@@ -1 +1 @@\\n-old()\\n+new()\\n"
+        "diff --git a/app.py b/app.py\n"
+        "index 123..456 100644\n"
+        "--- a/app.py\n+++ b/app.py\n"
+        "similarity index 90%\n"
+        "@@ -1 +1 @@\n-old()\n+new()\n"
     )
     parsed = parse_unified_diff(diff)
     assert parsed[0].additions == 1
