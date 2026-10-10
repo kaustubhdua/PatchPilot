@@ -1,12 +1,15 @@
-"""Unified-diff parsing primitives for PatchPilot."""
+"""Conservative parser for Git unified-diff text.
 
+The parser counts only lines inside syntactically recognized hunks. It never
+executes or interprets submitted source code.
+"""
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
 
-_HEADER = re.compile(r"^diff --git a/(.+) b/(.+)$")
-_HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@")
+_HEADER = re.compile(r'^diff --git a/(.+) b/(.+)$')
+_HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?:.*)$")
 _RENAME_TO = "rename to "
 _NEW_FILE = "new file mode "
 _DELETED_FILE = "deleted file mode "
@@ -25,33 +28,60 @@ class ParsedFile:
     renamed: bool = False
     deleted: bool = False
     new_file: bool = False
+    malformed_hunks: int = 0
 
 
 def _unquote_git_path(path: str) -> str:
-    """Decode Git's quoted path representation conservatively."""
-    if len(path) >= 2 and path[0] == '"' and path[-1] == '"':
-        body = path[1:-1]
-        replacements = {
-            r"\\": "\\",
-            r"\t": "\t",
-            r"\n": "\n",
-        }
-        for source, target in replacements.items():
-            body = body.replace(source, target)
-        return body
-    return path
+    """Decode common C-style escapes used by Git's quoted path format."""
+    if len(path) < 2 or path[0] != '"' or path[-1] != '"':
+        return path
+    body = path[1:-1]
+    result: list[str] = []
+    index = 0
+    escapes = {"t": "\t", "n": "\n", "r": "\r", '"': '"', "\\": "\\"}
+    while index < len(body):
+        char = body[index]
+        if char != "\\" or index + 1 >= len(body):
+            result.append(char)
+            index += 1
+            continue
+        nxt = body[index + 1]
+        if nxt in escapes:
+            result.append(escapes[nxt])
+            index += 2
+            continue
+        if nxt in "01234567":
+            end = index + 1
+            while end < min(index + 4, len(body)) and body[end] in "01234567":
+                end += 1
+            result.append(chr(int(body[index + 1:end], 8)))
+            index = end
+            continue
+        # Preserve unknown escapes instead of silently corrupting the path.
+        result.extend(("\\", nxt))
+        index += 2
+    return "".join(result)
+
+
+def _header_path(value: str, prefix: str) -> str | None:
+    value = value.strip()
+    if value == "/dev/null":
+        return None
+    if value.startswith(prefix):
+        value = value[len(prefix):]
+    return _unquote_git_path(value)
 
 
 def parse_unified_diff(diff: str) -> list[ParsedFile]:
-    """Parse file boundaries and count only lines inside valid hunks.
+    """Parse file metadata and line counts from a unified diff.
 
-    This parser deliberately does not try to interpret source code. It supports
-    ordinary Git unified diffs, new/deleted files, basic rename metadata and
-    binary markers. Malformed or incomplete hunk lines are ignored rather than
-    guessed at.
+    Incomplete or malformed hunks are not guessed at. This lightweight parser
+    does not validate the full Git diff grammar; callers should treat the
+    result as heuristic analysis, not as proof that a patch is valid.
     """
     files: list[ParsedFile] = []
     current: ParsedFile | None = None
+    old_remaining = new_remaining = 0
     in_hunk = False
 
     for line in diff.splitlines():
@@ -63,7 +93,6 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             files.append(current)
             in_hunk = False
             continue
-
         if current is None:
             continue
 
@@ -90,34 +119,62 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             in_hunk = False
             continue
         if line.startswith("+++ "):
-            path = line[4:]
-            if path != "/dev/null":
-                current.path = _unquote_git_path(path.removeprefix("b/"))
+            path = _header_path(line[4:], "b/")
+            if path is not None:
+                current.path = path
             in_hunk = False
             continue
         if line.startswith("--- "):
-            path = line[4:]
-            if path != "/dev/null":
-                current.old_path = _unquote_git_path(path.removeprefix("a/"))
+            path = _header_path(line[4:], "a/")
+            if path is not None:
+                current.old_path = path
             in_hunk = False
             continue
         if line.startswith("@@"):
-            in_hunk = bool(_HUNK.match(line))
+            match = _HUNK.match(line)
+            if not match:
+                current.malformed_hunks += 1
+                in_hunk = False
+                continue
+            old_remaining = int(match.group(2) or "1")
+            new_remaining = int(match.group(4) or "1")
+            in_hunk = True
+            # Zero/zero hunks are legal but have no body to consume.
+            if old_remaining == 0 and new_remaining == 0:
+                in_hunk = False
             continue
         if not in_hunk:
             continue
-        if line.startswith("+") and not line.startswith("+++"):
+        if line.startswith("\\"):
+            # Git's no-newline marker does not consume a hunk line.
+            continue
+        if line.startswith("+"):
+            if new_remaining <= 0:
+                current.malformed_hunks += 1
+                in_hunk = False
+                continue
             current.additions += 1
             current.added_lines.append(line[1:])
-        elif line.startswith("-") and not line.startswith("---"):
+            new_remaining -= 1
+        elif line.startswith("-"):
+            if old_remaining <= 0:
+                current.malformed_hunks += 1
+                in_hunk = False
+                continue
             current.deletions += 1
-        elif line.startswith("\\"):
-            # Diff metadata such as "\ No newline at end of file".
-            continue
+            old_remaining -= 1
         elif line.startswith(" "):
-            continue
+            if old_remaining <= 0 or new_remaining <= 0:
+                current.malformed_hunks += 1
+                in_hunk = False
+                continue
+            old_remaining -= 1
+            new_remaining -= 1
         else:
-            # Unexpected unprefixed content terminates the current hunk.
+            current.malformed_hunks += 1
+            in_hunk = False
+            continue
+        if old_remaining == 0 and new_remaining == 0:
             in_hunk = False
 
     return files
