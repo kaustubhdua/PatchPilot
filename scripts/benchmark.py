@@ -16,28 +16,36 @@ DATASET = ROOT / "benchmarks" / "cases.jsonl"
 
 
 def main() -> int:
-    cases = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines() if line]
-    counts = {rule: {"tp": 0, "fp": 0, "fn": 0} for case in cases for rule in case["expected_rule_ids"]}
-    all_rules = set(counts)
-    rows = []
+    cases = [
+        json.loads(line)
+        for line in DATASET.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    rows: list[tuple[str, set[str], set[str]]] = []
+    all_rules: set[str] = set()
     for case in cases:
         result = analyze(AnalyzeRequest(title=case["id"], diff=case["diff"]))
-        actual = {finding.rule_id for finding in result.findings}
         expected = set(case["expected_rule_ids"])
+        actual = {finding.rule_id for finding in result.findings}
+        all_rules.update(expected)
         all_rules.update(actual)
-        rows.append((case["id"], sorted(expected), sorted(actual)))
+        rows.append((case["id"], expected, actual))
+
+    counts = {rule: {"tp": 0, "fp": 0, "fn": 0} for rule in all_rules}
+    for _case_id, expected, actual in rows:
         for rule in all_rules:
-            stats = counts.setdefault(rule, {"tp": 0, "fp": 0, "fn": 0})
+            stats = counts[rule]
             if rule in expected and rule in actual:
                 stats["tp"] += 1
             elif rule in actual and rule not in expected:
                 stats["fp"] += 1
             elif rule in expected and rule not in actual:
                 stats["fn"] += 1
+
     print(f"Dataset: {DATASET.relative_to(ROOT)} ({len(cases)} cases)")
     for case_id, expected, actual in rows:
-        print(f"- {case_id}: expected={expected} actual={actual}")
-    print("\nPer-rule metrics (tiny starter corpus; not production evidence):")
+        print(f"- {case_id}: expected={sorted(expected)} actual={sorted(actual)}")
+    print("\\nPer-rule metrics (tiny starter corpus; not production evidence):")
     for rule, values in sorted(counts.items()):
         tp, fp, fn = values["tp"], values["fp"], values["fn"]
         precision = f"{tp / (tp + fp):.3f}" if tp + fp else "n/a"
