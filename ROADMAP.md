@@ -1,28 +1,38 @@
 # Roadmap
 
-PatchPilot is being built in incremental, testable milestones. Items below are goals, not claims that the functionality exists.
+PatchPilot is built in incremental, testable milestones. A checked item means the capability or artifact exists in the repository; it does not imply that the latest CI run is green or that production readiness has been independently verified.
 
 ## M0 — Reliable foundation
 - [x] FastAPI API and Pydantic input limits
 - [x] Deterministic baseline rules and evidence
 - [x] Unit/API tests and CI workflow
 - [x] Non-root container and health check
-- [ ] Confirm green CI and add parser fixture corpus
-- [ ] Fully support quoted paths, renames, deleted files, and malformed diffs
+- [x] Architecture, threat-model and benchmark-methodology documents
+- [x] Starter benchmark corpus and metric script
+- [x] Additional parser regression tests
+- [x] Manual GitHub Actions diff-analysis workflow
+- [x] Scheduled dependency audit and basic secret-pattern check
+- [ ] Run CI and verify latest result
+- [ ] Expand real Git-generated diff fixture corpus
+- [ ] Validate full hunk counts, truncation and all relevant Git path encodings
+- [ ] Review dependency-audit and secret-check workflows for false positives and operational fit
 
 ## M1 — Better diff intelligence
-- [ ] Separate parser, rule engine, scoring and recommendation modules
-- [ ] Add language-aware rules and syntax-aware parsing
-- [ ] Add rule configuration and severity/score explanations
-- [ ] Build positive and negative fixtures for each rule
-- [ ] Measure precision, recall and false-positive rate
+- [ ] Separate parser, rule interface, scoring and recommendation modules where useful
+- [ ] Add language-aware and syntax-aware analysis
+- [ ] Add rule configuration, stable metadata and severity/score explanations
+- [ ] Add positive and negative fixtures for every rule
+- [ ] Measure precision, recall, false-positive rate and latency on a labeled dataset
+- [ ] Add suppressions with documented rationale and duplicate finding handling
 
 ## M2 — GitHub integration
-- [ ] GitHub App with minimum permissions and short-lived installation tokens
-- [ ] Verify webhook signatures and make delivery handling idempotent
-- [ ] Fetch pull-request metadata and changed-file patches safely
-- [ ] Publish an opt-in Check Run with inline evidence
-- [ ] Handle pagination, rate limits, retries and oversized diffs
+- [x] Manual GitHub Actions workflow to analyze a selected diff and upload a report artifact
+- [ ] Automatically run on pull requests and publish a concise summary
+- [ ] Map findings to changed lines when supported by reliable evidence
+- [ ] Handle forks, permissions, oversized diffs and no-diff cases safely
+- [ ] GitHub App with minimum permissions and short-lived installation tokens, if needed
+- [ ] Verify webhook signatures and make delivery handling idempotent if webhooks are used
+- [ ] Handle pagination, rate limits, retries and unavailable patches
 
 ## M3 — Codebase context
 - [ ] Symbol index and dependency/call graph
@@ -45,9 +55,9 @@ PatchPilot is being built in incremental, testable milestones. Items below are g
 ## M6 — Safe validation and release
 - [ ] Disposable, isolated runners with CPU, memory, time and disk limits
 - [ ] No ambient secrets; deny network access by default
-- [ ] Benchmark dataset, baselines and reproducible evaluation
+- [ ] Representative benchmark dataset, baselines and reproducible evaluation
 - [ ] Threat model, dependency scanning, observability and incident runbooks
-- [ ] Staging deployment, backup/restore test and documented limitations
+- [ ] Staging deployment, backup/restore test if persistence is added, and documented limitations
 - [ ] Public demo and short end-to-end walkthrough
 
 ## Release gate
