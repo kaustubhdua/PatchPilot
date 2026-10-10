@@ -18,7 +18,12 @@ PatchPilot inspects a unified diff and returns changed-file statistics, evidence
 - [ ] GitHub App / pull-request integration
 - [ ] Syntax-aware parsing and language-specific rules
 - [ ] Persistent history, dashboard and background jobs
-- [ ] Benchmark and measured false-positive rates
+- [x] Starter benchmark corpus and reproducible metric script (small corpus; not production evidence)
+- [x] Architecture, benchmark methodology and threat-model documentation
+- [x] Additional parser hardening regression tests
+- [x] Manual GitHub Actions diff-analysis workflow
+- [x] Scheduled dependency audit and basic secret-pattern checks
+- [ ] Expand benchmark and measure false-positive rates on a labeled, representative dataset
 
 This is an early MVP, not yet a hosted service or an autonomous code-fixing agent.
 
@@ -76,13 +81,27 @@ The first version looks for:
 - Risky patterns in **added lines** (for example, dynamic evaluation, shell execution, or disabled TLS verification)
 - Production changes without a corresponding test file in the same diff
 
-These are explainable heuristics, not semantic analysis. Path-name matching can be noisy; a risky-looking token may be benign, and the absence of findings is not evidence that a change is safe. The score is **not** a probability of defects, security certification, or merge recommendation. Binary files are counted but their contents are not analyzed. Unified-diff path quoting and every Git rename edge case are not yet fully supported.
+These are explainable heuristics, not semantic analysis. Path-name matching can be noisy; a risky-looking token may be benign, and the absence of findings is not evidence that a change is safe. The score is **not** a probability of defects, security certification, or merge recommendation. Binary files are counted but their contents are not analyzed. Diff parsing remains intentionally lightweight; complete Git diff grammar coverage and a broad real-world fixture corpus are still outstanding. The benchmark currently contains only a tiny starter dataset and must not be used to claim production detection quality.
 
 ## Security boundary
 
 PatchPilot currently treats the supplied diff as untrusted text. It does not clone repositories, run tests, install dependencies, execute patches, or call an LLM. Do not send secrets or private code to a deployment unless its data-handling policy is appropriate for that repository.
 
 See [SECURITY.md](SECURITY.md) before exposing an instance publicly.
+
+## Benchmark
+
+A small starter dataset and script are available:
+
+```bash
+python scripts/benchmark.py
+```
+
+The dataset is intended to make early rule behavior reproducible, not to demonstrate production precision or recall. Expand and independently label the corpus before publishing quality claims. See [benchmark methodology](docs/benchmark-methodology.md).
+
+## Architecture and threat model
+
+See [architecture](docs/architecture.md) and [threat model](docs/threat-model.md). The current GitHub Actions workflow is manually triggered and produces an artifact; it is not yet an automatic pull-request check or GitHub App.
 
 ## Development
 
