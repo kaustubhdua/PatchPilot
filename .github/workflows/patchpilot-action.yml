@@ -16,6 +16,9 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      PATCHPILOT_BASE_REF: ${{ inputs.base_ref }}
+      PATCHPILOT_HEAD_REF: ${{ inputs.head_ref }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,12 +31,14 @@ jobs:
       - name: Generate diff
         shell: bash
         run: |
-          git diff --no-ext-diff --unified=3 "${{ inputs.base_ref }}" "${{ inputs.head_ref }}" > "$RUNNER_TEMP/patchpilot.diff"
-          test -s "$RUNNER_TEMP/patchpilot.diff" || echo "No diff content was generated."
+          set -euo pipefail
+          git check-ref-format "${PATCHPILOT_BASE_REF#origin/}" >/dev/null
+          git check-ref-format "${PATCHPILOT_HEAD_REF#origin/}" >/dev/null
+          git diff --no-ext-diff --unified=3 "$PATCHPILOT_BASE_REF" "$PATCHPILOT_HEAD_REF" > "$RUNNER_TEMP/patchpilot.diff"
       - name: Analyze diff
         shell: bash
         run: |
-          python -m pip install .
+          set -euo pipefail
           patchpilot analyze --diff-file "$RUNNER_TEMP/patchpilot.diff" --title "GitHub Actions analysis" --json > "$RUNNER_TEMP/patchpilot-report.json"
           cat "$RUNNER_TEMP/patchpilot-report.json"
       - name: Upload report
