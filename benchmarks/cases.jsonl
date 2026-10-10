@@ -1,0 +1,4 @@
+{"id":"dynamic-eval-positive","diff":"diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-safe(value)\n+eval(value)\n","expected_rule_ids":["dynamic-evaluation"],"notes":"Positive example for a configured dynamic evaluation pattern."}
+{"id":"dynamic-eval-negative-removed-only","diff":"diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-eval(value)\n+safe(value)\n","expected_rule_ids":[],"notes":"Removed risky-looking code must not trigger added-line rule."}
+{"id":"dependency-change","diff":"diff --git a/requirements.txt b/requirements.txt\n--- a/requirements.txt\n+++ b/requirements.txt\n@@ -1 +1 @@\n-safe-package==1.0\n+safe-package==1.1\n","expected_rule_ids":["dependency-change"],"notes":"Dependency manifest change."}
+{"id":"binary-file","diff":"diff --git a/image.png b/image.png\nBinary files a/image.png and b/image.png differ\n","expected_rule_ids":[],"notes":"Binary files have no source-line additions."}
