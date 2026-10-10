@@ -1,0 +1,46 @@
+name: PatchPilot pull-request triage
+on:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "Base ref to compare (for example origin/main)"
+        required: true
+        default: "origin/main"
+      head_ref:
+        description: "Head ref to compare (for example HEAD)"
+        required: true
+        default: "HEAD"
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PatchPilot
+        run: python -m pip install .
+      - name: Generate diff
+        shell: bash
+        run: |
+          git diff --no-ext-diff --unified=3 "${{ inputs.base_ref }}" "${{ inputs.head_ref }}" > "$RUNNER_TEMP/patchpilot.diff"
+          test -s "$RUNNER_TEMP/patchpilot.diff" || echo "No diff content was generated."
+      - name: Analyze diff
+        shell: bash
+        run: |
+          python -m pip install .
+          patchpilot analyze --diff-file "$RUNNER_TEMP/patchpilot.diff" --title "GitHub Actions analysis" --json > "$RUNNER_TEMP/patchpilot-report.json"
+          cat "$RUNNER_TEMP/patchpilot-report.json"
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patchpilot-report
+          path: ${{ runner.temp }}/patchpilot-report.json
+          if-no-files-found: ignore
+          retention-days: 7
