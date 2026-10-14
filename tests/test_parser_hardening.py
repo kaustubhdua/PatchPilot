@@ -56,20 +56,43 @@ def test_hunk_with_overrun_is_flagged_and_not_counted_after_range():
     assert parsed[0].malformed_hunks == 1
 
 
+def test_incomplete_hunk_is_flagged_at_end_of_diff():
+    diff = (
+        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
+        "@@ -1,2 +1,2 @@\n-old()\n+new()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].additions == 1
+    assert parsed[0].deletions == 1
+    assert parsed[0].malformed_hunks == 1
+
+
+def test_new_file_section_flags_incomplete_previous_hunk():
+    diff = (
+        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
+        "@@ -1,2 +1,2 @@\n-old()\n+new()\n"
+        "diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n"
+        "@@ -0,0 +1 @@\n+added()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].malformed_hunks == 1
+    assert parsed[1].additions == 1
+
+
 def test_quoted_git_paths_decode_escaped_tab():
     diff = (
-        'diff --git a/"tab\\\\tname.py" b/"tab\\\\tname.py"\n'
-        '--- a/"tab\\\\tname.py"\n+++ b/"tab\\\\tname.py"\n'
+        'diff --git a/"tab\\tname.py" b/"tab\\tname.py"\n'
+        '--- a/"tab\\tname.py"\n+++ b/"tab\\tname.py"\n'
         "@@ -0,0 +1 @@\n+safe()\n"
     )
     parsed = parse_unified_diff(diff)
     assert len(parsed) == 1
-    assert parsed[0].path == "tab\\tname.py"
+    assert parsed[0].path == "tab\tname.py"
 
 
 def test_multiple_hunks_in_same_file():
     diff = (
-        "diff --git a/a.py b/a.py\n--- a/a.py b/a.py\n"
+        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
         "@@ -1 +1 @@\n-a()\n+A()\n"
         "@@ -10 +10 @@\n-b()\n+B()\n"
     )
