@@ -1,31 +1,39 @@
 # PatchPilot
 
-**Explainable pull-request risk triage, starting with deterministic diff analysis.**
+<p align="center">
+  <strong>Explainable pull-request risk triage — without executing submitted code.</strong>
+</p>
 
-PatchPilot inspects a unified diff and returns changed-file statistics, evidence-backed static signals, a coarse risk score, and test suggestions. The current MVP is intentionally small: it parses diffs only and never clones or executes repository code.
+<p align="center">
+  <a href="https://github.com/kaustubhdua/PatchPilot/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/kaustubhdua/PatchPilot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/kaustubhdua/PatchPilot/actions/workflows/security.yml"><img alt="Security checks" src="https://github.com/kaustubhdua/PatchPilot/actions/workflows/security.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/kaustubhdua/PatchPilot/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776AB.svg">
+  <img alt="Status: early MVP" src="https://img.shields.io/badge/status-early%20MVP-orange.svg">
+</p>
 
-[Quick start](#quick-start) · [API](#api) · [Rules and limitations](#rules-and-limitations) · [Roadmap](ROADMAP.md) · [Security](SECURITY.md)
+PatchPilot inspects a unified diff and returns changed-file statistics, evidence-backed static signals, a coarse risk score, and test suggestions. It is designed to make code review more structured and explainable. The MVP parses diffs as untrusted text: it does **not** clone repositories, execute patches, install submitted dependencies, or call an LLM.
 
-## Current status
+> **Status:** early MVP. The automated pull-request workflow and core analysis are implemented, but this project is not a hosted service, a formal security audit, or an autonomous code-fixing agent. See the [roadmap](ROADMAP.md) and current [CI status](https://github.com/kaustubhdua/PatchPilot/actions).
 
-- [x] FastAPI service with health and analysis endpoints
-- [x] Request validation and bounded diff input
-- [x] Per-process analysis rate limit and readiness probe
-- [x] Deterministic risk heuristics with evidence
-- [x] Unit and API regression tests
-- [x] CI for lint, formatting and tests
-- [x] Non-root Docker image and health check
-- [ ] GitHub App / pull-request integration
-- [ ] Syntax-aware parsing and language-specific rules
-- [ ] Persistent history, dashboard and background jobs
-- [x] Starter benchmark corpus and reproducible metric script (small corpus; not production evidence)
-- [x] Architecture, benchmark methodology and threat-model documentation
-- [x] Additional parser hardening regression tests
-- [x] Manual GitHub Actions diff-analysis workflow
-- [x] Scheduled dependency audit and basic secret-pattern checks
-- [ ] Expand benchmark and measure false-positive rates on a labeled, representative dataset
+## At a glance
 
-This is an early MVP, not yet a hosted service or an autonomous code-fixing agent.
+- **Explainable:** findings include stable rule IDs, descriptions, and evidence.
+- **Conservative boundary:** analyzes diff text only; no execution of pull-request code.
+- **Usable locally:** Python API, CLI, and Docker image.
+- **GitHub workflow:** a pull-request workflow can publish a concise analysis summary.
+- **Honest evaluation:** a starter benchmark is included, with explicit warnings that it is not representative production evidence.
+
+## Contents
+
+- [Quick start](#quick-start)
+- [CLI](#command-line)
+- [API](#api)
+- [Rules and limitations](#rules-and-limitations)
+- [GitHub Actions integration](#github-actions-integration)
+- [Benchmark](#benchmark)
+- [Security](#security-boundary)
+- [Development](#development)
 
 ## Quick start
 
@@ -43,71 +51,96 @@ uvicorn patchpilot.api:app --reload
 
 Open the interactive API docs at http://127.0.0.1:8000/docs.
 
-## Command-line usage
+## Command line
 
-Analyze a saved patch locally without starting the API:
+Analyze a saved patch:
 
 ```bash
 patchpilot analyze --diff-file change.diff
+```
+
+Analyze the current branch against the main branch:
+
+```bash
 git diff origin/main...HEAD | patchpilot analyze --title "Review current branch"
+```
+
+Get machine-readable output:
+
+```bash
 git diff origin/main...HEAD | patchpilot analyze --json
 ```
 
-The CLI reads a patch from a file or standard input, prints evidence-backed findings, and exits with a non-zero status for invalid input. It does not clone a repository or execute patch contents.
+The CLI reads a patch from a file or standard input, prints findings and suggested checks, and exits non-zero for invalid input.
 
 ## API
 
-`GET /health` returns liveness; `GET /ready` returns readiness for the stateless MVP.
+- `GET /health` — liveness probe.
+- `GET /ready` — readiness probe for the stateless MVP.
+- `POST /v1/analyze` — validate and analyze a unified diff.
 
-`POST /v1/analyze` accepts JSON:
+Example request:
 
 ```json
 {
   "title": "Harden request validation",
   "base_ref": "main",
   "head_ref": "feature/validation",
-  "diff": "diff --git a/src/example.py b/src/example.py\n--- a/src/example.py\n+++ b/src/example.py\n@@ -1 +1 @@\n-old()\n+new()"
+  "diff": "diff --git a/src/example.py b/src/example.py\\n--- a/src/example.py\\n+++ b/src/example.py\\n@@ -1 +1 @@\\n-old()\\n+new()"
 }
 ```
 
-The diff must be between 1 and 500,000 characters. Unknown request fields are rejected. Analysis requests are limited to 60 per client IP per 60-second window per application process; excess requests receive HTTP 429 and a `Retry-After` header. This in-memory limit is a basic safety rail, not a substitute for a shared gateway limiter in multi-worker or public deployments. The response contains a score from 0–100, a broad risk level, per-file line counts, findings with rule IDs and evidence, and suggested tests.
+Input is limited to 500,000 characters and unknown request fields are rejected. Analysis is rate-limited to 60 requests per client IP per 60-second window **per process**; this is a basic safety rail, not a shared limiter for multi-worker/public deployments. Responses include a heuristic score from 0–100, broad risk level, file statistics, findings, and suggested tests.
 
 ## Rules and limitations
 
-The first version looks for:
-- Changes to paths whose names suggest authentication or security sensitivity
+The current rules look for:
+- Paths whose names suggest authentication or security sensitivity
 - Dependency manifest and lockfile changes
 - Broad changes and large diffs
-- Risky patterns in **added lines** (for example, dynamic evaluation, shell execution, or disabled TLS verification)
+- Risky patterns in added lines (for example dynamic evaluation, shell execution, or disabled TLS verification)
 - Production changes without a corresponding test file in the same diff
 
-These are explainable heuristics, not semantic analysis. Path-name matching can be noisy; a risky-looking token may be benign, and the absence of findings is not evidence that a change is safe. The score is **not** a probability of defects, security certification, or merge recommendation. Binary files are counted but their contents are not analyzed. Diff parsing remains intentionally lightweight; complete Git diff grammar coverage and a broad real-world fixture corpus are still outstanding. The benchmark currently contains only a tiny starter dataset and must not be used to claim production detection quality.
+These are heuristics, not semantic analysis. Path-name matching can be noisy; a risky-looking token may be benign, and no findings do not prove a change is safe. The score is **not** a probability of defects, security certification, or merge recommendation. Binary files are counted but their contents are not analyzed. Full Git diff grammar coverage and a broad, real-world fixture corpus remain outstanding.
 
-## Security boundary
+## GitHub Actions integration
 
-PatchPilot currently treats the supplied diff as untrusted text. It does not clone repositories, run tests, install dependencies, execute patches, or call an LLM. Do not send secrets or private code to a deployment unless its data-handling policy is appropriate for that repository.
+The pull-request workflow analyzes the diff using the trusted base revision and publishes a summary. It is designed not to check out or execute pull-request head code. It uses read-only repository and pull-request permissions. The workflow is a triage aid only and should not be used as a merge gate without independent validation.
 
-See [SECURITY.md](SECURITY.md) before exposing an instance publicly.
+- [Pull-request analysis workflow](.github/workflows/patchpilot-pr.yml)
+- [CI workflow](.github/workflows/ci.yml)
+- [Security checks](.github/workflows/security.yml)
 
 ## Benchmark
 
-A small starter dataset and script are available:
+Run the starter corpus:
 
 ```bash
 python scripts/benchmark.py
 ```
 
-The dataset is intended to make early rule behavior reproducible, not to demonstrate production precision or recall. Expand and independently label the corpus before publishing quality claims. See [benchmark methodology](docs/benchmark-methodology.md).
+The corpus and script make current behavior reproducible; they do **not** demonstrate production precision or recall. Expand and independently label representative examples, including false positives, before making quality claims. See [benchmark methodology](docs/benchmark-methodology.md).
 
-## Architecture and threat model
+## Security boundary
 
-See [architecture](docs/architecture.md) and [threat model](docs/threat-model.md). The current GitHub Actions workflow is manually triggered and produces an artifact; it is not yet an automatic pull-request check or GitHub App.
+PatchPilot treats the supplied diff as untrusted text. It does not clone repositories, run tests, install dependencies, execute patches, or call an LLM. Do not send secrets or private code to a deployment unless its data-handling policy is appropriate for that repository.
+
+See [SECURITY.md](SECURITY.md) for deployment guidance and vulnerability reporting. A formal security audit has not been performed.
+
+## Architecture and roadmap
+
+- [Architecture](docs/architecture.md)
+- [Threat model](docs/threat-model.md)
+- [Roadmap](ROADMAP.md)
 
 ## Development
 
-- Keep rules deterministic and include the evidence that caused each finding.
-- Add regression fixtures for parser edge cases and false positives.
-- Never execute user-controlled repository code in the API process.
-- Run the same lint, format and test checks as CI before submitting a change.
+```bash
+python -m pip install -e '.[dev]'
+ruff check .
+ruff format --check .
+pytest
+python scripts/benchmark.py
+```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [ROADMAP.md](ROADMAP.md).
+Contributions should include regression tests and preserve deterministic, evidence-backed findings. See [CONTRIBUTING.md](CONTRIBUTING.md).
