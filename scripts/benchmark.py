@@ -3,6 +3,7 @@
 This starter corpus is for reproducibility and regression, not a claim of
 production detection quality. Run: python scripts/benchmark.py
 """
+
 from __future__ import annotations
 
 import json
