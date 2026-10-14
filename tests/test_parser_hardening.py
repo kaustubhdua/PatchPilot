@@ -69,7 +69,7 @@ def test_quoted_git_paths_decode_escaped_tab():
 
 def test_multiple_hunks_in_same_file():
     diff = (
-        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
+        "diff --git a/a.py b/a.py\n--- a/a.py b/a.py\n"
         "@@ -1 +1 @@\n-a()\n+A()\n"
         "@@ -10 +10 @@\n-b()\n+B()\n"
     )
