@@ -46,7 +46,7 @@ def main() -> int:
     print(f"Dataset: {DATASET.relative_to(ROOT)} ({len(cases)} cases)")
     for case_id, expected, actual in rows:
         print(f"- {case_id}: expected={sorted(expected)} actual={sorted(actual)}")
-    print("\\nPer-rule metrics (tiny starter corpus; not production evidence):")
+    print("\nPer-rule metrics (tiny starter corpus; not production evidence):")
     for rule, values in sorted(counts.items()):
         tp, fp, fn = values["tp"], values["fp"], values["fn"]
         precision = f"{tp / (tp + fp):.3f}" if tp + fp else "n/a"
