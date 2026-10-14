@@ -3,6 +3,7 @@
 The parser counts only lines inside syntactically recognized hunks. It never
 executes or interprets submitted source code.
 """
+
 from __future__ import annotations
 
 import re
@@ -54,7 +55,7 @@ def _unquote_git_path(path: str) -> str:
             end = index + 1
             while end < min(index + 4, len(body)) and body[end] in "01234567":
                 end += 1
-            result.append(chr(int(body[index + 1:end], 8)))
+            result.append(chr(int(body[index + 1 : end], 8)))
             index = end
             continue
         # Preserve unknown escapes instead of silently corrupting the path.
@@ -68,7 +69,7 @@ def _header_path(value: str, prefix: str) -> str | None:
     if value == "/dev/null":
         return None
     if value.startswith(prefix):
-        value = value[len(prefix):]
+        value = value[len(prefix) :]
     return _unquote_git_path(value)
 
 
