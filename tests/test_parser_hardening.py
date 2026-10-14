@@ -57,10 +57,7 @@ def test_hunk_with_overrun_is_flagged_and_not_counted_after_range():
 
 
 def test_incomplete_hunk_is_flagged_at_end_of_diff():
-    diff = (
-        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
-        "@@ -1,2 +1,2 @@\n-old()\n+new()\n"
-    )
+    diff = "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1,2 +1,2 @@\n-old()\n+new()\n"
     parsed = parse_unified_diff(diff)
     assert parsed[0].additions == 1
     assert parsed[0].deletions == 1
