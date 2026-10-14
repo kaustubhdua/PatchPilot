@@ -9,8 +9,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-_HEADER = re.compile(r'^diff --git a/(.+) b/(.+)$')
-_HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?:.*)$")
+_HEADER = re.compile(r"^diff --git a/(.+) b/(.+)$")
+_HUNK = re.compile(r"^@@ -(\\d+)(?:,(\\d+))? \\+(\\d+)(?:,(\\d+))? @@(?:.*)$")
 _RENAME_TO = "rename to "
 _NEW_FILE = "new file mode "
 _DELETED_FILE = "deleted file mode "
@@ -39,10 +39,10 @@ def _unquote_git_path(path: str) -> str:
     body = path[1:-1]
     result: list[str] = []
     index = 0
-    escapes = {"t": "\t", "n": "\n", "r": "\r", '"': '"', "\\": "\\"}
+    escapes = {"t": "\\t", "n": "\\n", "r": "\\r", '"': '"', "\\\\": "\\\\"}
     while index < len(body):
         char = body[index]
-        if char != "\\" or index + 1 >= len(body):
+        if char != "\\\\" or index + 1 >= len(body):
             result.append(char)
             index += 1
             continue
@@ -59,7 +59,7 @@ def _unquote_git_path(path: str) -> str:
             index = end
             continue
         # Preserve unknown escapes instead of silently corrupting the path.
-        result.extend(("\\", nxt))
+        result.extend(("\\\\", nxt))
         index += 2
     return "".join(result)
 
@@ -88,6 +88,8 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
     for line in diff.splitlines():
         header = _HEADER.match(line)
         if header:
+            if current is not None and in_hunk:
+                current.malformed_hunks += 1
             old_path = _unquote_git_path(header.group(1))
             new_path = _unquote_git_path(header.group(2))
             current = ParsedFile(path=new_path, old_path=old_path)
@@ -132,6 +134,8 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             in_hunk = False
             continue
         if line.startswith("@@"):
+            if in_hunk:
+                current.malformed_hunks += 1
             match = _HUNK.match(line)
             if not match:
                 current.malformed_hunks += 1
@@ -146,7 +150,7 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             continue
         if not in_hunk:
             continue
-        if line.startswith("\\"):
+        if line.startswith("\\\\"):
             # Git's no-newline marker does not consume a hunk line.
             continue
         if line.startswith("+"):
@@ -178,4 +182,6 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
         if old_remaining == 0 and new_remaining == 0:
             in_hunk = False
 
+    if current is not None and in_hunk:
+        current.malformed_hunks += 1
     return files
