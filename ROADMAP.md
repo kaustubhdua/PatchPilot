@@ -27,9 +27,9 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 
 ## M2 — GitHub integration
 - [x] Manual GitHub Actions workflow to analyze a selected diff and upload a report artifact
-- [ ] Automatically run on pull requests and publish a concise summary
+- [x] Automatically run on pull requests and publish a concise summary (implemented; end-to-end verification pending)
 - [ ] Map findings to changed lines when supported by reliable evidence
-- [ ] Handle forks, permissions, oversized diffs and no-diff cases safely
+- [ ] Validate fork permissions, oversized diffs and no-diff cases end to end
 - [ ] GitHub App with minimum permissions and short-lived installation tokens, if needed
 - [ ] Verify webhook signatures and make delivery handling idempotent if webhooks are used
 - [ ] Handle pagination, rate limits, retries and unavailable patches
