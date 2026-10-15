@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from collections import deque
 from threading import Lock
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
@@ -21,6 +23,22 @@ app = FastAPI(
     description="Explainable pull-request risk analysis",
     version="0.2.0",
 )
+
+# Configure exact trusted website origins at deployment time; do not use wildcard
+# origins for a public API. Empty by default to avoid accidental public CORS.
+_cors_origins = [
+    origin.strip()
+    for origin in os.getenv("PATCHPILOT_CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "Accept"],
+    )
 
 
 class InMemoryRateLimiter:
