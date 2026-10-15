@@ -14,6 +14,7 @@ index 11aa111..22bb222 100644
 const $ = (id) => document.getElementById(id);
 const diffInput = $("diff-input");
 const apiInput = $("api-url");
+if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") apiInput.value = window.location.origin;
 const analyzeButton = $("analyze-button");
 const statusMessage = $("status-message");
 const charCount = $("char-count");
