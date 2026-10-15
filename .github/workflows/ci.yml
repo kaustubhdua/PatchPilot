@@ -20,3 +20,8 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest
+      - run: python -m compileall -q src tests
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: node --check website/app.js
