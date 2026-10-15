@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 import os
 import time
+from pathlib import Path
 from collections import deque
 from threading import Lock
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from patchpilot.analyzer import analyze
@@ -117,3 +119,12 @@ def analyze_diff(payload: AnalyzeRequest) -> AnalyzeResponse:
 @app.exception_handler(ValidationError)
 async def validation_error_handler(_request: Request, exc: ValidationError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
+
+# Serve the web workbench from the same origin when the static site is available.
+# In containers PATCHPILOT_WEB_DIR points to /app/website; local source defaults
+# to the repository's website directory. API routes above take precedence.
+_default_web_dir = Path(__file__).resolve().parents[2] / "website"
+_web_dir = Path(os.getenv("PATCHPILOT_WEB_DIR", str(_default_web_dir)))
+if _web_dir.is_dir() and (_web_dir / "index.html").is_file():
+    app.mount("/", StaticFiles(directory=_web_dir, html=True), name="website")
