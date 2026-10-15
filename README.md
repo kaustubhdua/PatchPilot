@@ -8,7 +8,7 @@
     <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776ab.svg">
     <img alt="Status: MVP" src="https://img.shields.io/badge/status-early%20MVP-f59e0b.svg">
   </p>
-  <p><a href="#quick-start">Get started</a> · <a href="#web-workbench">Web workbench</a> · <a href="docs/architecture.md">Architecture</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+  <p><a href="#quick-start">Get started</a> · <a href="#web-workbench">Web workbench</a> · <a href="docs/architecture.md">Architecture</a> · <a href="ROADMAP.md">Roadmap</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
 </div>
 
 ---
@@ -157,6 +157,7 @@ The corpus and script make current behavior reproducible; they do **not** establ
 - [Security policy and reporting](SECURITY.md)
 - [Deployment guide](docs/deployment.md)
 - [Repository maintenance and release checklist](docs/repository-maintenance.md)
+- [Changelog](CHANGELOG.md)
 - [Architecture](docs/architecture.md)
 
 A Render Blueprint is provided in <code>render.yaml</code> for a same-origin Docker deployment. Review the service configuration and deployment provider's limits before going public. Do not send secrets or private source code to a deployment unless its data-handling policy is suitable.
