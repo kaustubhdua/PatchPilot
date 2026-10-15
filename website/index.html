@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="PatchPilot turns code diffs into explainable pull-request risk triage.">
+  <title>PatchPilot — Pull request intelligence</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="PatchPilot home"><span class="brand-mark">P</span><span>patchpilot<span class="brand-dot">.</span></span></a>
+    <nav aria-label="Main navigation"><a href="#analyzer">Analyzer</a><a href="#how-it-works">How it works</a><a href="https://github.com/kaustubhdua/PatchPilot" target="_blank" rel="noreferrer">GitHub ↗</a></nav>
+    <a class="top-cta" href="#analyzer">Analyze a diff <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span class="pulse"></span> EXPLAINABLE CODE REVIEW INTELLIGENCE</div>
+      <h1>Ship with more<br><span>signal, less guesswork.</span></h1>
+      <p class="hero-copy">Understand what changed, where risk may be hiding, and which tests deserve attention — with evidence you can inspect.</p>
+      <div class="hero-actions"><a class="button primary" href="#analyzer">Analyze your diff <span>↓</span></a><a class="button secondary" href="https://github.com/kaustubhdua/PatchPilot" target="_blank" rel="noreferrer">Explore the project ↗</a></div>
+      <div class="trust-row"><span><i class="check">✓</i> Evidence-backed findings</span><span><i class="check">✓</i> Deterministic analysis</span><span><i class="check">✓</i> No code execution</span></div>
+      <div class="hero-art" aria-hidden="true"><div class="art-grid"></div><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="core"><span>PP</span><small>DIFF ENGINE</small></div><div class="float-card card-a"><span class="mini-icon violet">⌘</span><div><b>Change detected</b><small>Auth boundary · 3 files</small></div><span class="tiny-dot"></span></div><div class="float-card card-b"><span class="mini-icon green">✓</span><div><b>Evidence attached</b><small>Rule-based · reproducible</small></div></div><div class="art-caption">STATIC ANALYSIS / REVIEW ASSISTANT / 01</div></div>
+    </section>
+    <section class="feature-strip" aria-label="Capabilities"><article><span class="feature-number">01 / INSPECT</span><h3>Read the change</h3><p>Parse file changes and line counts from a unified diff.</p></article><article><span class="feature-number">02 / EXPLAIN</span><h3>See the evidence</h3><p>Review rule IDs and the added lines behind each signal.</p></article><article><span class="feature-number">03 / VERIFY</span><h3>Test with intent</h3><p>Get practical test suggestions based on changed files.</p></article></section>
+    <section class="analyzer-section" id="analyzer">
+      <div class="section-heading"><div><div class="eyebrow">THE WORKBENCH</div><h2>Put a diff under the lens.</h2><p>Paste a unified diff or load the sample. Your configured PatchPilot API performs the analysis.</p></div><div class="mode-pill"><span class="pulse"></span> API-powered</div></div>
+      <div class="workbench">
+        <div class="editor-panel">
+          <div class="panel-top"><div class="window-dots"><i></i><i></i><i></i></div><span>CHANGESET.DIFF</span><button id="load-sample" class="text-button" type="button">Load sample ↗</button></div>
+          <label class="sr-only" for="diff-input">Unified diff</label><textarea id="diff-input" spellcheck="false" placeholder="Paste a unified diff here…&#10;&#10;diff --git a/src/auth.py b/src/auth.py&#10;--- a/src/auth.py&#10;+++ b/src/auth.py&#10;@@ -1 +1 @@&#10;-old_call()&#10;+new_call()"></textarea>
+          <div class="editor-footer"><span id="char-count">0 characters</span><span>Max 500,000 characters</span></div>
+          <div class="connection-row"><label for="api-url">API endpoint</label><input id="api-url" type="url" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000"><button id="check-api" class="button secondary compact" type="button">Check connection</button></div>
+          <button id="analyze-button" class="button primary analyze-button" type="button"><span>Analyze diff</span><span aria-hidden="true">↗</span></button>
+          <p class="privacy-note"><span>◈</span> Your diff is sent only to the API endpoint you configure. Do not submit secrets or code you aren't authorized to share.</p>
+          <p id="status-message" class="status-message" role="status" aria-live="polite">Ready when you are.</p>
+        </div>
+        <div class="results-panel" aria-live="polite">
+          <div class="panel-top"><span>ANALYSIS REPORT</span><span class="report-id" id="report-state">AWAITING INPUT</span></div>
+          <div id="empty-state" class="empty-state"><div class="empty-symbol"><span>⌁</span></div><h3>Your report starts here.</h3><p>Run an analysis to see the risk score, file impact, evidence-backed findings and recommended checks.</p><div class="empty-lines"><i></i><i></i><i></i></div></div>
+          <div id="report" class="report hidden">
+            <div class="risk-row"><div><span class="result-label">HEURISTIC RISK SCORE</span><div class="score-line"><strong id="risk-score">—</strong><span>/ 100</span></div></div><span id="risk-level" class="risk-badge">—</span></div>
+            <p id="report-summary" class="report-summary"></p>
+            <div class="metric-grid"><div><span>FILES CHANGED</span><strong id="files-count">0</strong></div><div><span>ADDITIONS</span><strong id="additions-count">0</strong></div><div><span>DELETIONS</span><strong id="deletions-count">0</strong></div></div>
+            <div class="report-block"><div class="block-heading">Changed files <span id="file-count-label"></span></div><div id="file-list" class="file-list"></div></div>
+            <div class="report-block"><div class="block-heading">Findings <span id="finding-count"></span></div><div id="finding-list" class="finding-list"></div></div>
+            <div class="report-block"><div class="block-heading">Suggested checks</div><ul id="test-list" class="test-list"></ul></div>
+            <p id="disclaimer" class="disclaimer"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="how-section" id="how-it-works"><div class="eyebrow">BUILT FOR TRUST</div><h2>Useful signals.<br><span>Clear boundaries.</span></h2><div class="principles"><article><b>01</b><h3>Deterministic by design</h3><p>Same diff, same rules. No opaque model judgment in the current MVP.</p></article><article><b>02</b><h3>Evidence over vibes</h3><p>Findings include rule identifiers and supporting evidence to help reviewers validate the signal.</p></article><article><b>03</b><h3>Human stays in control</h3><p>Risk scores are triage hints — never a merge decision or proof a change is safe.</p></article></div></section>
+    <section class="cta-section"><div><div class="eyebrow">OPEN SOURCE · EARLY MVP</div><h2>Review smarter.<br>Keep the human judgment.</h2><p>Explore the code, run it locally, and help improve the rule set.</p></div><a class="button primary" href="https://github.com/kaustubhdua/PatchPilot" target="_blank" rel="noreferrer">View source on GitHub ↗</a></section>
+  </main>
+  <footer><a class="brand footer-brand" href="#"><span class="brand-mark">P</span><span>patchpilot<span class="brand-dot">.</span></span></a><span>Explainable triage for better code reviews.</span><div><a href="https://github.com/kaustubhdua/PatchPilot/blob/main/SECURITY.md">Security</a><a href="https://github.com/kaustubhdua/PatchPilot/blob/main/ROADMAP.md">Roadmap</a><span>© <span id="year"></span> PatchPilot</span></div></footer>
+</body>
+</html>
