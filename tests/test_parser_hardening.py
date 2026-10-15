@@ -47,9 +47,15 @@ def test_context_lines_consume_both_ranges():
 
 
 def test_hunk_with_overrun_is_flagged_and_not_counted_after_range():
-    diff = (
-        "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n"
-        "@@ -0,0 +1,1 @@\n+inside()\n+outside()\n"
+    diff = "\n".join(
+        [
+            "diff --git a/a.py b/a.py",
+            "--- a/a.py",
+            "+++ b/a.py",
+            "@@ -0,0 +1,1 @@",
+            "+inside()",
+            "+outside()",
+        ]
     )
     parsed = parse_unified_diff(diff)
     assert parsed[0].additions == 1
