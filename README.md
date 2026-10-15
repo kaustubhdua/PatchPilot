@@ -156,6 +156,7 @@ The corpus and script make current behavior reproducible; they do **not** establ
 - [Threat model](docs/threat-model.md)
 - [Security policy and reporting](SECURITY.md)
 - [Deployment guide](docs/deployment.md)
+- [Repository maintenance and release checklist](docs/repository-maintenance.md)
 - [Architecture](docs/architecture.md)
 
 A Render Blueprint is provided in <code>render.yaml</code> for a same-origin Docker deployment. Review the service configuration and deployment provider's limits before going public. Do not send secrets or private source code to a deployment unless its data-handling policy is suitable.
