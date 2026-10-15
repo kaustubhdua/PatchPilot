@@ -121,13 +121,13 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             current.binary = True
             in_hunk = False
             continue
-        if line.startswith("+++ "):
+        if not in_hunk and line.startswith("+++ "):
             path = _header_path(line[4:], "b/")
             if path is not None:
                 current.path = path
             in_hunk = False
             continue
-        if line.startswith("--- "):
+        if not in_hunk and line.startswith("--- "):
             path = _header_path(line[4:], "a/")
             if path is not None:
                 current.old_path = path
