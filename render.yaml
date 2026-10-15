@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: patchpilot
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PATCHPILOT_CORS_ORIGINS
+        sync: false
