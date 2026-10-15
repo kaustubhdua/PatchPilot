@@ -38,7 +38,7 @@ PatchPilot inspects a unified diff and returns changed-file statistics, evidence
 
 ## Website
 
-A responsive static web client lives in [`website/`](website/). The GitHub Pages workflow deploys it from the repository root of that directory. The browser client sends diffs only to the API endpoint configured in the workbench; no API URL is hard-coded as a hosted service.
+A responsive static web client lives in [`website/`](website/) and is also served from `/` by the API when the site directory is present (including the Docker image). A GitHub Pages workflow is included, but initial Pages enablement requires repository settings permissions. The browser client sends diffs only to the API endpoint configured in the workbench; no API URL is hard-coded as a hosted service.
 
 To preview it locally, serve the folder with any static HTTP server, for example `python -m http.server 8080 --directory website`, then open `http://127.0.0.1:8080`. Start the API separately. For cross-origin use, configure `PATCHPILOT_CORS_ORIGINS` on the API to a comma-separated list of exact trusted origins (for example, your deployed Pages origin). CORS is disabled by default; do not use wildcard origins for a public API.
 
@@ -56,7 +56,7 @@ pytest
 uvicorn patchpilot.api:app --reload
 ```
 
-Open the interactive API docs at http://127.0.0.1:8000/docs.
+Open the interactive API docs at http://127.0.0.1:8000/docs. When running from a source checkout, the web workbench is served at http://127.0.0.1:8000/.
 
 ## Command line
 
