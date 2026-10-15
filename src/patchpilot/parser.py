@@ -146,6 +146,8 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
             in_hunk = old_remaining > 0 or new_remaining > 0
             continue
         if not in_hunk:
+            if line.startswith(("+", "-")):
+                current.malformed_hunks += 1
             continue
         if line.startswith("\\"):
             # Git's no-newline marker does not consume a hunk line.
