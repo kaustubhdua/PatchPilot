@@ -104,22 +104,20 @@ def test_multiple_hunks_in_same_file():
     assert parsed[0].deletions == 2
 
 
-def test_added_lines_that_look_like_file_headers_stay_in_hunk():
+def test_hunk_lines_that_look_like_file_headers_stay_in_hunk():
     diff = "\n".join(
         [
             "diff --git a/a.txt b/a.txt",
             "--- a/a.txt",
             "+++ b/a.txt",
-            "@@ -1,1 +1,3 @@",
+            "@@ -1,2 +1,2 @@",
             " context",
             "+++ this is added content",
-            "--- this is also added content",
+            "--- this is deleted content",
         ]
     )
     parsed = parse_unified_diff(diff)
     assert parsed[0].path == "a.txt"
-    assert parsed[0].additions == 2
-    assert parsed[0].added_lines == [
-        "++ this is added content",
-        "-- this is also added content",
-    ]
+    assert parsed[0].additions == 1
+    assert parsed[0].deletions == 1
+    assert parsed[0].added_lines == ["++ this is added content"]
