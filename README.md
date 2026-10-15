@@ -33,6 +33,7 @@ PatchPilot inspects a unified diff and returns changed-file statistics, evidence
 - [Rules and limitations](#rules-and-limitations)
 - [GitHub Actions integration](#github-actions-integration)
 - [Benchmark](#benchmark)
+- [Deployment](docs/deployment.md)
 - [Security](#security-boundary)
 - [Development](#development)
 
@@ -138,6 +139,7 @@ See [SECURITY.md](SECURITY.md) for deployment guidance and vulnerability reporti
 
 - [Architecture](docs/architecture.md)
 - [Threat model](docs/threat-model.md)
+- [Deployment guide](docs/deployment.md)
 - [Roadmap](ROADMAP.md)
 
 ## Development
