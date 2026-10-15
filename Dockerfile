@@ -4,6 +4,8 @@ WORKDIR /app
 RUN addgroup --system app && adduser --system --ingroup app app
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY website ./website
+ENV PATCHPILOT_WEB_DIR=/app/website
 RUN pip install --no-cache-dir .
 USER app
 EXPOSE 8000
