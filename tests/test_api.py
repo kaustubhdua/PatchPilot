@@ -45,3 +45,12 @@ def test_rate_limit_isolated_by_client():
     assert limiter.allow("client-a", now=100)
     assert not limiter.allow("client-a", now=101)
     assert limiter.allow("client-b", now=101)
+
+
+def test_website_is_served_from_api_origin():
+    home = client.get("/")
+    assert home.status_code == 200
+    assert "PatchPilot" in home.text
+    stylesheet = client.get("/styles.css")
+    assert stylesheet.status_code == 200
+    assert "--bg:" in stylesheet.text
