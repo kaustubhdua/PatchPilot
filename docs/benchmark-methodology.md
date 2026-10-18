@@ -32,3 +32,20 @@ If a denominator is zero, report the metric as unavailable rather than inventing
 - Publish limitations and dataset size alongside results.
 
 The repository does not yet claim measured precision or recall. The current 12-case corpus contains deliberately curated synthetic diffs, including known false-positive traps; any score printed from it is a rule-regression count only. Do not publish it as a real-world precision/recall estimate. Broader real Git-generated diffs and independently reviewed labels are still required.
+
+
+## Reviewer-labelled triage corpus v1
+
+`benchmarks/triage-labeled-v1.jsonl` adds 20 small synthetic cases with reviewer-authored expected rule IDs and test-suggestion labels. It includes risky constructs, comment-only false-positive traps, test-file examples, dependency manifests, sensitive paths, binary assets, documentation-only changes, multi-file thresholds, and a large synthetic diff.
+
+Run:
+
+```bash
+python scripts/benchmark_labeled.py
+```
+
+The script reports TP, FP, FN, precision, recall, F1 and exact-set agreement for configured rule findings and proposed test categories. Test-suggestion precision is shown as relevance: the share of produced suggestions that reviewers labelled useful for that case.
+
+Labels follow a **triage relevance policy**, not a vulnerability oracle. A `sensitive-path` true positive means the path deserves review, not that it contains a vulnerability. A false positive or false negative is relative to these explicit fixture labels only.
+
+The v1 corpus is synthetic, small, hand-labelled and authored alongside the heuristics. It has not been independently adjudicated and is not representative of the distribution of real pull requests. Do not present its scores as production accuracy. The original 12-case `cases.jsonl` remains a behavior/regression corpus and should not be combined with this labelled set without reconciling the label policy.
