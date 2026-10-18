@@ -134,7 +134,7 @@ def main() -> int:
         f"({exact_test_cases / len(cases):.1%})"
     )
     print(
-        "Caution: these metrics measure only the synthetic hand-labelled fixtures and label policy. "
+        "Caution: these metrics measure only synthetic hand-labelled fixtures and label policy. "
         "They are not estimates of performance on real pull requests or security defects."
     )
     return 0
