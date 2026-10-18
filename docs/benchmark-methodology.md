@@ -10,7 +10,7 @@ Store one case per JSON object with:
 - `expected_rule_ids`: rule IDs expected for the case
 - `notes`: why the case is included
 
-Include positive cases, benign negative cases, malformed diffs, multiple files, binary files, renames, dependency changes, and false-positive traps such as risky tokens inside comments or test fixtures.
+Include positive cases, benign negative cases, malformed diffs, multiple files, binary files, renames, dependency changes, and false-positive traps such as risky tokens inside comments or test fixtures. The current 12-case corpus includes a few deliberate negative traps. It is a regression suite, not an independent representative sample: some labels intentionally capture the current heuristic output rather than semantic security truth.
 
 ## Metrics
 
@@ -31,4 +31,4 @@ If a denominator is zero, report the metric as unavailable rather than inventing
 - Keep difficult negative cases permanently as regression tests.
 - Publish limitations and dataset size alongside results.
 
-The repository does not yet claim measured precision or recall. This document defines the process needed before publishing those claims.
+The repository does not yet claim measured precision or recall. The current 12-case corpus contains deliberately curated synthetic diffs, including known false-positive traps; any score printed from it is a rule-regression count only. Do not publish it as a real-world precision/recall estimate. Broader real Git-generated diffs and independently reviewed labels are still required.
