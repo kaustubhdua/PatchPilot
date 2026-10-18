@@ -20,6 +20,8 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest
+      - name: Measure synthetic triage and test-suggestion relevance
+        run: python scripts/benchmark_labeled.py
       - run: python -m compileall -q src tests
       - uses: actions/setup-node@v5
         with:
