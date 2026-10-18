@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import time
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -71,8 +70,6 @@ def main() -> int:
     rule_actual: list[set[str]] = []
     test_expected: list[set[str]] = []
     test_actual: list[set[str]] = []
-    per_rule: dict[str, list[set[str]]] = defaultdict(list)
-    per_test: dict[str, list[set[str]]] = defaultdict(list)
     started = time.perf_counter()
 
     for case in cases:
@@ -101,9 +98,7 @@ def main() -> int:
         test_expected.append(expected_tests)
         test_actual.append(actual_tests)
 
-        for rule in expected_rules | actual_rules:
-            per_rule[rule].append({rule} if rule in expected_rules else set())
-        # Per-case comparison is the primary result. Global labels below are easier to read.
+        # Per-case comparison is the primary result; aggregate metrics follow below.
         print(
             f"{case_id}: "
             f"rules expected={sorted(expected_rules)} actual={sorted(actual_rules)}; "
