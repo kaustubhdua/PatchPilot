@@ -151,7 +151,7 @@ Run the starter corpus:
 python scripts/benchmark.py
 ~~~
 
-The corpus and script make current behavior reproducible; they do **not** establish production precision or recall. The versioned corpus now includes 12 synthetic rule-regression cases, including benign negative traps and multi-file interactions. It is still deliberately small and hand-authored; no production detection-quality claim should be made from it. Add real Git-generated diffs and independently reviewed labels before publishing precision/recall. See [benchmark methodology](docs/benchmark-methodology.md). See [benchmark methodology](docs/benchmark-methodology.md).
+The original 12-case corpus in `benchmarks/cases.jsonl` is a rule-regression suite, not an independent quality estimate. A second, reviewer-labelled 20-case synthetic corpus is in `benchmarks/triage-labeled-v1.jsonl`; run `python scripts/benchmark_labeled.py` to measure rule false positives/negatives and test-suggestion relevance against its explicit labels. Both corpora are tiny and hand-authored, so **neither establishes production precision/recall or real-world test relevance**. Broad real Git-generated diffs and independently reviewed labels are still required. See [benchmark methodology](docs/benchmark-methodology.md).
 
 ## Security and deployment
 
