@@ -149,7 +149,7 @@ Run the starter corpus:
 python scripts/benchmark.py
 ~~~
 
-The corpus and script make current behavior reproducible; they do **not** establish production precision or recall. Add independently labeled representative examples, including false positives and negative cases, before making quality claims. See [benchmark methodology](docs/benchmark-methodology.md).
+The corpus and script make current behavior reproducible; they do **not** establish production precision or recall. The versioned corpus now includes 12 synthetic rule-regression cases, including benign negative traps and multi-file interactions. It is still deliberately small and hand-authored; no production detection-quality claim should be made from it. Add real Git-generated diffs and independently reviewed labels before publishing precision/recall. See [benchmark methodology](docs/benchmark-methodology.md). See [benchmark methodology](docs/benchmark-methodology.md).
 
 ## Security and deployment
 
