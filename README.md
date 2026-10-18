@@ -71,6 +71,8 @@ Then open:
 
 ## Command-line usage
 
+A complete local example is documented in the [CLI walkthrough](docs/cli-walkthrough.md). The sample diff is synthetic and does not require a hosted backend.
+
 Analyze a saved patch:
 
 ~~~bash
@@ -155,6 +157,7 @@ The corpus and script make current behavior reproducible; they do **not** establ
 
 - [Threat model](docs/threat-model.md)
 - [Security policy and reporting](SECURITY.md)
+- [CLI walkthrough](docs/cli-walkthrough.md) — run a synthetic diff locally with no network calls or code execution.
 - [Deployment guide](docs/deployment.md)
 - [Repository maintenance and release checklist](docs/repository-maintenance.md)
 - [Changelog](CHANGELOG.md)
