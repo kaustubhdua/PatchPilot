@@ -141,9 +141,7 @@ def evaluate_risk(
         matches = [
             f"{item.path}:{line_number}: {line.strip()}"
             for item in parsed
-            for line, line_number in zip(
-                item.added_lines, item.added_line_numbers, strict=True
-            )
+            for line, line_number in zip(item.added_lines, item.added_line_numbers, strict=True)
             if pattern.search(line)
         ]
         if matches:
