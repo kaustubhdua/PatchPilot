@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from patchpilot.parser import parse_unified_diff
 
 
@@ -182,3 +184,14 @@ def test_git_quoted_control_character_escapes():
     )
     parsed = parse_unified_diff(diff)
     assert parsed[0].path == "tab\tback\bvertical\vform\falert\a.py"
+
+
+def test_real_git_generated_quoted_unicode_and_space_path_fixture():
+    fixture = Path(__file__).parent / "fixtures" / "git-quoted-unicode-space.diff"
+    parsed = parse_unified_diff(fixture.read_text(encoding="utf-8"))
+    assert len(parsed) == 1
+    assert parsed[0].old_path == "café notes.py"
+    assert parsed[0].path == "café notes.py"
+    assert parsed[0].additions == 2
+    assert parsed[0].deletions == 2
+    assert parsed[0].added_lines == ["def new():", "    return 2"]
