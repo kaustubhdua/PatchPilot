@@ -8,6 +8,7 @@ import time
 from collections import deque
 from pathlib import Path
 from threading import Lock
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,13 +27,43 @@ app = FastAPI(
     version="0.2.0",
 )
 
+
+def parse_cors_origins(value: str) -> list[str]:
+    """Parse exact HTTP(S) origins and reject wildcard or malformed entries."""
+    origins: list[str] = []
+    for raw_origin in value.split(","):
+        origin = raw_origin.strip()
+        if not origin:
+            continue
+        if origin == "*":
+            raise ValueError("PATCHPILOT_CORS_ORIGINS must not contain wildcard origins.")
+        try:
+            parsed = urlsplit(origin)
+            _ = parsed.port
+        except ValueError as exc:
+            raise ValueError("PATCHPILOT_CORS_ORIGINS contains an invalid origin.") from exc
+        if (
+            parsed.scheme.lower() not in {"http", "https"}
+            or not parsed.hostname
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            raise ValueError(
+                "PATCHPILOT_CORS_ORIGINS entries must be exact HTTP(S) origins "
+                "without credentials, paths, query strings, or fragments."
+            )
+        normalized = f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+        if normalized not in origins:
+            origins.append(normalized)
+    return origins
+
+
 # Configure exact trusted website origins at deployment time; do not use wildcard
-# origins for a public API. Empty by default to avoid accidental public CORS.
-_cors_origins = [
-    origin.strip()
-    for origin in os.getenv("PATCHPILOT_CORS_ORIGINS", "").split(",")
-    if origin.strip()
-]
+# origins for a public API. Invalid configuration fails at startup.
+_cors_origins = parse_cors_origins(os.getenv("PATCHPILOT_CORS_ORIGINS", ""))
 if _cors_origins:
     app.add_middleware(
         CORSMiddleware,
