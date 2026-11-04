@@ -26,3 +26,23 @@ def test_cli_returns_error_for_missing_diff_file(capsys, tmp_path):
     missing = tmp_path / "missing.diff"
     assert main(["analyze", "--diff-file", str(missing)]) == 2
     assert "patchpilot:" in capsys.readouterr().err
+
+
+def test_cli_displays_incomplete_diff_warning(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "sys.stdin",
+        io.StringIO(
+            """diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -1,2 +1,2 @@
+-old()
++new()
+"""
+        ),
+    )
+    assert main(["analyze"]) == 0
+    output = capsys.readouterr().out
+    assert "Analysis warnings:" in output
+    assert "app.py" in output
+    assert "partial" in output
