@@ -1,6 +1,8 @@
+import pytest
 from fastapi.testclient import TestClient
 
-from patchpilot.api import InMemoryRateLimiter, app
+import patchpilot.api as api
+from patchpilot.api import InMemoryRateLimiter, app, parse_cors_origins
 
 client = TestClient(app)
 
@@ -45,6 +47,38 @@ def test_rate_limit_isolated_by_client():
     assert limiter.allow("client-a", now=100)
     assert not limiter.allow("client-a", now=101)
     assert limiter.allow("client-b", now=101)
+
+
+def test_analysis_endpoint_returns_429_after_configured_limit(monkeypatch):
+    monkeypatch.setattr(api, "rate_limiter", InMemoryRateLimiter(limit=1, window_seconds=60))
+    payload = {"diff": "diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -0,0 +1 @@\n+safe()\n"}
+    first = client.post("/v1/analyze", json=payload)
+    second = client.post("/v1/analyze", json=payload)
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.headers["retry-after"] == "60"
+
+
+def test_cors_origins_are_exact_normalized_and_deduplicated():
+    assert parse_cors_origins(
+        " https://Example.com/,http://localhost:3000,https://example.com "
+    ) == ["https://example.com", "http://localhost:3000"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "*",
+        "https://example.com/path",
+        "javascript://example.com",
+        "https://user:password@example.com",
+        "https://example.com?query=1",
+        "https://example.com:invalid",
+    ],
+)
+def test_cors_origins_reject_unsafe_or_malformed_values(value):
+    with pytest.raises(ValueError):
+        parse_cors_origins(value)
 
 
 def test_website_is_served_from_api_origin():
