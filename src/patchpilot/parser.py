@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 _HEADER = re.compile(r"^diff --git a/(.+) b/(.+)$")
 _QUOTED_HEADER = re.compile(r'^diff --git "((?:[^"\\]|\\.)*)" "((?:[^"\\]|\\.)*)"$')
-_QUOTED_PREFIX_HEADER = re.compile(r'^diff --git (a/"(?:[^"\\]|\\.)*") (b/"(?:[^"\\]|\\.)*")$')
+_QUOTED_PREFIX_HEADER = re.compile(r"""^diff --git (a/"(?:[^"\\]|\\.)*") (b/"(?:[^"\\]|\\.)*")$""")
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?:.*)$")
 _RENAME_TO = "rename to "
 _NEW_FILE = "new file mode "
@@ -36,9 +36,12 @@ class ParsedFile:
 
 
 def _unquote_git_path(path: str) -> str:
-    """Decode Git C-style quoted paths, including escaped UTF-8 bytes."""
+    """Decode Git's C-style quoted paths, including escaped UTF-8 bytes."""
+    prefix = ""
+    if path.startswith(('a/"', 'b/"')):
+        prefix, path = path[:2], path[2:]
     if len(path) < 2 or path[0] != '"' or path[-1] != '"':
-        return path
+        return prefix + path
     body = path[1:-1]
     result: list[str] = []
     index = 0
@@ -76,41 +79,34 @@ def _unquote_git_path(path: str) -> str:
             continue
         result.extend(("\\", nxt))
         index += 2
-    return "".join(result)
+    return prefix + "".join(result)
 
 
 def _header_path(value: str, prefix: str) -> str | None:
-    value = value.strip()
-    if value.startswith('"'):
-        value = _unquote_git_path(value)
-        if value.startswith(prefix):
-            value = value[len(prefix) :]
-    else:
-        if value.startswith(prefix):
-            value = value[len(prefix) :]
-        value = _unquote_git_path(value)
+    value = _unquote_git_path(value.strip())
     if value == "/dev/null":
         return None
+    if value.startswith(prefix):
+        value = value[len(prefix) :]
     return value
 
 
 def _diff_header_paths(line: str) -> tuple[str, str] | None:
-    """Extract paths from quoted, prefix-quoted, or unquoted Git headers."""
+    """Extract old/new paths from quoted or unquoted Git diff headers."""
+    quoted_prefix = _QUOTED_PREFIX_HEADER.match(line)
+    if quoted_prefix:
+        return (
+            _unquote_git_path(quoted_prefix.group(1))[2:],
+            _unquote_git_path(quoted_prefix.group(2))[2:],
+        )
     quoted = _QUOTED_HEADER.match(line)
     if quoted:
         old_path = _unquote_git_path(f'"{quoted.group(1)}"')
         new_path = _unquote_git_path(f'"{quoted.group(2)}"')
         return old_path.removeprefix("a/"), new_path.removeprefix("b/")
-
-    prefix_quoted = _QUOTED_PREFIX_HEADER.match(line)
-    if prefix_quoted:
-        old_path = _unquote_git_path(prefix_quoted.group(1)[2:])
-        new_path = _unquote_git_path(prefix_quoted.group(2)[2:])
-        return old_path, new_path
-
     unquoted = _HEADER.match(line)
     if unquoted:
-        return _unquote_git_path(unquoted.group(1)), _unquote_git_path(unquoted.group(2))
+        return unquoted.group(1), unquoted.group(2)
     return None
 
 
@@ -192,6 +188,7 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
                 current.malformed_hunks += 1
             continue
         if line.startswith("\\"):
+            # Git's no-newline marker does not consume a hunk line.
             continue
         if line.startswith("+"):
             if new_remaining <= 0:
