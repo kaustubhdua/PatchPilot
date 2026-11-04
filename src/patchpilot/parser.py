@@ -98,9 +98,9 @@ def _diff_header_paths(line: str) -> tuple[str, str] | None:
 
     prefix_quoted = _QUOTED_PREFIX_HEADER.match(line)
     if prefix_quoted:
-        old_path = _unquote_git_path(prefix_quoted.group(1))
-        new_path = _unquote_git_path(prefix_quoted.group(2))
-        return old_path.removeprefix("a/"), new_path.removeprefix("b/")
+        old_path = _unquote_git_path(prefix_quoted.group(1)[2:])
+        new_path = _unquote_git_path(prefix_quoted.group(2)[2:])
+        return old_path, new_path
 
     unquoted = _HEADER.match(line)
     if unquoted:
