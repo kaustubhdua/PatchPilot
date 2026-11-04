@@ -171,10 +171,11 @@ def test_quoted_diff_header_and_file_headers_strip_prefix_inside_quotes():
 
 
 def test_git_quoted_control_character_escapes():
+    path = r"tab\tback\bvertical\vform\falert\a.py"
     diff = (
-        'diff --git a/"tab\\tback\\bvertical\\vform\\falert\\a.py" b/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
-        '--- a/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
-        '+++ b/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
+        f'diff --git a/"{path}" b/"{path}"\n'
+        f'--- a/"{path}"\n'
+        f'+++ b/"{path}"\n'
         "@@ -0,0 +1 @@\n+safe()\n"
     )
     parsed = parse_unified_diff(diff)
