@@ -65,6 +65,13 @@ def test_cors_origins_are_exact_normalized_and_deduplicated():
     ) == ["https://example.com", "http://localhost:3000"]
 
 
+def test_cors_origins_remove_default_ports():
+    assert parse_cors_origins("https://example.com:443,http://localhost:80") == [
+        "https://example.com",
+        "http://localhost",
+    ]
+
+
 @pytest.mark.parametrize(
     "value",
     [
