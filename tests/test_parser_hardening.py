@@ -139,3 +139,31 @@ def test_added_line_numbers_follow_hunk_ranges_and_context():
     parsed = parse_unified_diff(diff)
     assert parsed[0].added_lines == ["new_one()", "new_two()", "after()"]
     assert parsed[0].added_line_numbers == [21, 22, 31]
+
+
+def test_git_quoted_unicode_path_matches_real_git_output():
+    diff = (
+        r'diff --git "a/caf\303\251.py" "b/caf\303\251.py"' + "\n"
+        + r'--- "a/caf\303\251.py"' + "\n"
+        + r'+++ "b/caf\303\251.py"' + "\n"
+        + "@@ -1 +1 @@\n-old()\n+new()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert len(parsed) == 1
+    assert parsed[0].old_path == "café.py"
+    assert parsed[0].path == "café.py"
+    assert parsed[0].additions == 1
+    assert parsed[0].deletions == 1
+
+
+def test_quoted_diff_header_and_file_headers_strip_prefix_inside_quotes():
+    diff = (
+        'diff --git "a/file name.py" "b/file name.py"\n'
+        '--- "a/file name.py"\n'
+        '+++ "b/file name.py"\n'
+        "@@ -1 +1 @@\n-old()\n+new()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert len(parsed) == 1
+    assert parsed[0].old_path == "file name.py"
+    assert parsed[0].path == "file name.py"
