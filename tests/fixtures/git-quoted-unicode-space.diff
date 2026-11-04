@@ -1,0 +1,9 @@
+diff --git "a/caf\303\251 notes.py" "b/caf\303\251 notes.py"
+index ca896f6..b2b4e9a 100644
+--- "a/caf\303\251 notes.py"	
++++ "b/caf\303\251 notes.py"	
+@@ -1,2 +1,2 @@
+-def old():
+-    return 1
++def new():
++    return 2
