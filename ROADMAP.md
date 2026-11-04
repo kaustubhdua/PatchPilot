@@ -16,7 +16,7 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 - [x] Expand the starter corpus to 12 versioned synthetic rule-regression cases (does not establish production detection quality)
 - [ ] Expand real Git-generated diff fixture corpus
 - [ ] Validate full hunk counts, truncation and all relevant Git path encodings
-- [x] Surface malformed and incomplete hunk counts as explicit per-file and report-level warnings
+- [x] Surface malformed and incomplete hunk counts as explicit per-file and report-level warnings\n- [x] Show parser-integrity warnings in CLI output and GitHub Actions summaries
 - [x] Attach changed-file line locations to configured risky-pattern findings
 - [ ] Review dependency-audit and secret-check workflows for false positives and operational fit
 
