@@ -15,7 +15,6 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 - A hunk is counted only while its declared old/new line ranges permit it.
 - Hunk overruns, malformed headers, and incomplete ranges are recorded per file.
 - The response includes `malformed_hunks` for each file and an `analysis_warnings` list.
-- The response exposes `analysis_complete`; any malformed or incomplete hunk makes it `false`, so consumers cannot mistake a partial low score for a complete review.
 - Partial counts are not silently presented as complete: users are warned that findings and statistics may omit changes.
 - Warnings do not attempt to repair or infer missing patch content.
 - Risky added-line findings expose source locations separately from evidence text, preserving the evidence field for existing consumers.
@@ -32,7 +31,7 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 - Rules use text and path heuristics; the engine does not understand program semantics.
 - Test recommendations are based on changed file extensions and presence of test paths.
 - The in-memory rate limiter is per process and is not a distributed quota.
-- The parser is intentionally lightweight and is not a complete implementation of every Git diff extension.
+- The parser is intentionally lightweight and is not a complete implementation of every Git diff extension. It decodes Git C-quoted UTF-8 paths and supports quoted file-header prefixes, including paths containing spaces.
 - No GitHub App, persistent history, dashboard, LLM integration, or code execution is part of the current MVP.
 
 ## Extension guidance
