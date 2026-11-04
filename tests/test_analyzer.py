@@ -138,3 +138,17 @@ def test_parser_ignores_header_lines_outside_hunks():
     parsed = parse_unified_diff(diff)
     assert parsed[0].additions == 1
     assert parsed[0].deletions == 1
+
+
+def test_analyzer_surfaces_incomplete_hunk_warning():
+    diff = (
+        "diff --git a/app.py b/app.py\n"
+        "--- a/app.py\n+++ b/app.py\n"
+        "@@ -1,2 +1,2 @@\n-old()\n+new()\n"
+    )
+    result = run(diff)
+    assert result.files[0].malformed_hunks == 1
+    assert len(result.analysis_warnings) == 1
+    assert "app.py" in result.analysis_warnings[0]
+    assert "partial" in result.analysis_warnings[0]
+    assert "malformed or incomplete" in result.summary

@@ -44,7 +44,8 @@ function renderReport(data) {
   $("risk-score").textContent = data.risk_score ?? "—";
   const level = String(data.risk_level || "unknown").toLowerCase();
   $("risk-level").textContent = level; $("risk-level").className = `risk-badge ${level}`;
-  $("report-summary").textContent = data.summary || "Analysis finished.";
+  const warnings = Array.isArray(data.analysis_warnings) ? data.analysis_warnings : [];
+  $("report-summary").textContent = [data.summary || "Analysis finished.", ...warnings.map((warning) => `Warning: ${warning}`)].join("\n\n");
   $("files-count").textContent = data.files_changed ?? data.files?.length ?? 0;
   $("additions-count").textContent = data.additions ?? 0; $("deletions-count").textContent = data.deletions ?? 0;
   $("file-count-label").textContent = String((data.files || []).length);

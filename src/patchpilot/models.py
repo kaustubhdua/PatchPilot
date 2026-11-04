@@ -17,6 +17,7 @@ class FileChange(BaseModel):
     additions: int = Field(ge=0)
     deletions: int = Field(ge=0)
     is_test: bool
+    malformed_hunks: int = Field(default=0, ge=0)
 
 
 class Finding(BaseModel):
@@ -40,4 +41,5 @@ class AnalyzeResponse(BaseModel):
     files: list[FileChange]
     findings: list[Finding]
     recommended_tests: list[str]
+    analysis_warnings: list[str] = Field(default_factory=list)
     disclaimer: str
