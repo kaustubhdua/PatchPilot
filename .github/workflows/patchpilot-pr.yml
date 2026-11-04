@@ -88,6 +88,12 @@ jobs:
               "",
               report["summary"],
               "",
+          ]
+          if report.get("analysis_warnings"):
+              summary.extend(["### Analysis warnings", ""])
+              summary.extend(f"- WARNING: {warning}" for warning in report["analysis_warnings"])
+              summary.append("")
+          summary.extend([
               "### Findings",
               "",
           ]
