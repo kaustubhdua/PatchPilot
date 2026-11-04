@@ -1,23 +1,15 @@
 # Changelog
 
-Notable project changes are documented here. This project is an early MVP and does not yet follow a formal release cadence.
+All notable changes to PatchPilot are documented here.
 
 ## Unreleased
 
 ### Added
-- Responsive website workbench served by the FastAPI app and included in the Docker image.
-- Explicit-origin CORS configuration for optional cross-origin deployments.
-- Automatic pull-request diff triage workflow with read-only permissions.
-- Parser regression tests for malformed and incomplete hunks and quoted Git paths.
-- Repository banner, structured issue forms, pull-request checklist, editor defaults, and release-maintenance guidance.
-- Render Blueprint and deployment documentation.
+- Expose malformed and incomplete diff hunk counts for each changed file.
+- Include report-level analysis warnings when diff sections are malformed or incomplete.
+- Display parser-integrity warnings in the web workbench summary.
+- Add regression coverage for incomplete hunk reporting.
 
-### Improved
-- CI now checks Python lint, formatting, tests, compilation, and website JavaScript syntax.
-- README navigation, feature/limitation table, quick-start instructions, API reference, and project layout.
-
-### Known limitations
-- No public demo has been deployed or smoke-tested yet.
-- Risk rules are heuristics; representative precision and recall are not established.
-- The API rate limiter is in-memory and per process.
-- Full Git diff grammar coverage and fork/large-diff PR workflow scenarios still need validation.
+### Notes
+- The warning is informational and does not reconstruct missing diff content.
+- Results from malformed or incomplete hunks may contain partial statistics and findings.
