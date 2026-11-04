@@ -55,7 +55,14 @@ def parse_cors_origins(value: str) -> list[str]:
                 "PATCHPILOT_CORS_ORIGINS entries must be exact HTTP(S) origins "
                 "without credentials, paths, query strings, or fragments."
             )
-        normalized = f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+        scheme = parsed.scheme.lower()
+        hostname = parsed.hostname.lower()
+        if ":" in hostname and not hostname.startswith("["):
+            hostname = f"[{hostname}]"
+        port = parsed.port
+        default_port = (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
+        netloc = hostname if port is None or default_port else f"{hostname}:{port}"
+        normalized = f"{scheme}://{netloc}"
         if normalized not in origins:
             origins.append(normalized)
     return origins
