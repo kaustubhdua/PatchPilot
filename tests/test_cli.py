@@ -46,3 +46,20 @@ def test_cli_displays_incomplete_diff_warning(monkeypatch, capsys):
     assert "Analysis warnings:" in output
     assert "app.py" in output
     assert "partial" in output
+
+
+def test_cli_displays_risky_finding_location(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "sys.stdin",
+        io.StringIO(
+            """diff --git a/src/runner.py b/src/runner.py
+--- a/src/runner.py
++++ b/src/runner.py
+@@ -1 +1 @@
++eval(user_input)
+"""
+        ),
+    )
+    assert main(["analyze"]) == 0
+    output = capsys.readouterr().out
+    assert "Location: src/runner.py:1" in output
