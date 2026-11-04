@@ -127,7 +127,7 @@ def test_added_line_numbers_follow_hunk_ranges_and_context():
     diff = (
         "diff --git a/src/app.py b/src/app.py\n"
         "--- a/src/app.py\n+++ b/src/app.py\n"
-        "@@ -10,3 +20,4 @@\n"
+        "@@ -10,2 +20,3 @@\n"
         " context()\n"
         "-old()\n"
         "+new_one()\n"
