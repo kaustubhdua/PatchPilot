@@ -96,7 +96,7 @@ jobs:
           summary.extend([
               "### Findings",
               "",
-          ]
+          ])
           for finding in report["findings"]:
               evidence = "; ".join(finding.get("evidence", [])[:3])
               summary.append(f"- **{finding['severity'].upper()} · {finding['rule_id']} — {finding['title']}**")
