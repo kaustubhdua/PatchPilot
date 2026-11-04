@@ -53,7 +53,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{result.title}: {result.risk_level.upper()} risk ({result.risk_score}/100)")
     print(result.summary)
     if result.analysis_warnings:
-        print()\n        print("Analysis warnings:")
+        print()
+        print("Analysis warnings:")
         for warning in result.analysis_warnings:
             print(f"  WARNING: {warning}")
     print()
