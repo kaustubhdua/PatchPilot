@@ -23,17 +23,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # Checkout only trusted base-branch code. Never execute code from the PR head.
-      - name: Resolve base revision
+      - name: Resolve trusted base revision
         id: revision
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull_number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "ref=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+            echo "ref=$BASE_SHA" >> "$GITHUB_OUTPUT"
           else
             gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json baseRefOid --jq '.baseRefOid' > "$RUNNER_TEMP/base-ref"
             echo "ref=$(cat "$RUNNER_TEMP/base-ref")" >> "$GITHUB_OUTPUT"
@@ -70,9 +70,11 @@ jobs:
       - name: Analyze diff
         if: steps.diff.outputs.available == 'true'
         shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull_number }}
         run: |
           set -euo pipefail
-          patchpilot analyze --diff-file "$RUNNER_TEMP/patchpilot.diff" --title "Pull request #${{ github.event.pull_request.number || inputs.pull_number }}" --json > "$RUNNER_TEMP/patchpilot-report.json"
+          patchpilot analyze --diff-file "$RUNNER_TEMP/patchpilot.diff" --title "Pull request #$PR_NUMBER" --json > "$RUNNER_TEMP/patchpilot-report.json"
           python - <<'PY'
           import json
           import os
@@ -88,15 +90,21 @@ jobs:
               "",
               report["summary"],
               "",
-              "### Findings",
-              "",
           ]
+          warnings = report.get("analysis_warnings", [])
+          if warnings:
+              summary.extend(["### Analysis warnings", ""])
+              summary.extend(f"- WARNING: {warning}" for warning in warnings)
+              summary.append("")
+          summary.extend(["### Findings", ""])
           for finding in report["findings"]:
-              evidence = "; ".join(finding.get("evidence", [])[:3])
               summary.append(f"- **{finding['severity'].upper()} · {finding['rule_id']} — {finding['title']}**")
               summary.append(f"  {finding['detail']}")
+              evidence = "; ".join(finding.get("evidence", [])[:3])
               if evidence:
                   summary.append(f"  Evidence: `{evidence}`")
+              for location in finding.get("locations", [])[:5]:
+                  summary.append(f"  Location: `{location}`")
           summary.extend(["", "### Suggested tests", ""])
           summary.extend(f"- {item}" for item in report["recommended_tests"])
           summary.extend(["", f"> {report['disclaimer']}", "", "> This report is heuristic triage, not a merge decision. The workflow checks out the base revision and does not execute PR code."])
