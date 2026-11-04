@@ -1,8 +1,16 @@
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 
 import patchpilot.api as api
-from patchpilot.api import InMemoryRateLimiter, app, parse_cors_origins
+from patchpilot.api import (
+    MAX_ANALYZE_BODY_BYTES,
+    AnalyzeBodyLimitMiddleware,
+    InMemoryRateLimiter,
+    app,
+    parse_cors_origins,
+)
 
 client = TestClient(app)
 
@@ -95,3 +103,47 @@ def test_website_is_served_from_api_origin():
     stylesheet = client.get("/styles.css")
     assert stylesheet.status_code == 200
     assert "--bg:" in stylesheet.text
+
+
+def test_analysis_endpoint_rejects_oversized_declared_body():
+    body = b"x" * (MAX_ANALYZE_BODY_BYTES + 1)
+    response = client.post(
+        "/v1/analyze",
+        content=body,
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert "byte limit" in response.json()["detail"]
+
+
+def test_streamed_analysis_body_limit_without_content_length():
+    messages = [
+        {"type": "http.request", "body": b"1234", "more_body": True},
+        {"type": "http.request", "body": b"5678", "more_body": False},
+    ]
+    sent = []
+
+    async def receive():
+        return messages.pop(0)
+
+    async def send(message):
+        sent.append(message)
+
+    async def downstream(scope, receive, send):
+        while True:
+            message = await receive()
+            if message["type"] == "http.request" and not message.get("more_body"):
+                break
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"ok"})
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/v1/analyze",
+        "headers": [],
+    }
+    middleware = AnalyzeBodyLimitMiddleware(downstream, max_bytes=5)
+    asyncio.run(middleware(scope, receive, send))
+    assert sent[0]["type"] == "http.response.start"
+    assert sent[0]["status"] == 413
