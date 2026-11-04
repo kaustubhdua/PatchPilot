@@ -62,6 +62,7 @@ def _finding(
     title: str,
     detail: str,
     evidence: list[str],
+    locations: list[str] | None = None,
 ) -> Finding:
     return Finding(
         rule_id=rule_id,
@@ -69,6 +70,7 @@ def _finding(
         title=title,
         detail=detail,
         evidence=evidence[:5],
+        locations=(locations or [])[:5],
     )
 
 
@@ -86,10 +88,11 @@ def evaluate_risk(
         title: str,
         detail: str,
         evidence: list[str],
+        locations: list[str] | None = None,
     ) -> None:
         nonlocal score
         score += points
-        findings.append(_finding(rule, severity, title, detail, evidence))
+        findings.append(_finding(rule, severity, title, detail, evidence, locations))
 
     sensitive = [item.path for item in changes if _is_sensitive_path(item.path)]
     if sensitive:
@@ -137,11 +140,23 @@ def evaluate_risk(
             [f"{additions} additions", f"{deletions} deletions"],
         )
 
-    added_text = "\n".join(line for item in parsed for line in item.added_lines)
     for pattern, rule, title, detail in RISKY_PATTERNS:
-        matches = [line.strip() for line in added_text.splitlines() if pattern.search(line)]
+        matches = [
+            (item.path, line_number, line.strip())
+            for item in parsed
+            for line, line_number in zip(item.added_lines, item.added_line_numbers, strict=True)
+            if pattern.search(line)
+        ]
         if matches:
-            add(rule, "high", 18, title, detail, matches)
+            add(
+                rule,
+                "high",
+                18,
+                title,
+                detail,
+                [match[2] for match in matches],
+                [f"{match[0]}:{match[1]}" for match in matches],
+            )
 
     production = [
         item

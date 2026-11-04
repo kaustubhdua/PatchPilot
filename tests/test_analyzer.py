@@ -152,3 +152,17 @@ def test_analyzer_surfaces_incomplete_hunk_warning():
     assert "app.py" in result.analysis_warnings[0]
     assert "partial" in result.analysis_warnings[0]
     assert "malformed or incomplete" in result.summary
+
+
+def test_risky_finding_includes_file_and_new_line_number():
+    diff = (
+        "diff --git a/src/runner.py b/src/runner.py\n"
+        "--- a/src/runner.py\n+++ b/src/runner.py\n"
+        "@@ -10 +20,2 @@\n"
+        " context()\n"
+        "+eval(user_input)\n"
+    )
+    result = run(diff)
+    finding = next(f for f in result.findings if f.rule_id == "dynamic-evaluation")
+    assert "src/runner.py:21" in finding.locations
+    assert "eval(user_input)" in finding.evidence
