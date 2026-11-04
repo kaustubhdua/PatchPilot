@@ -26,6 +26,7 @@ class Finding(BaseModel):
     title: str
     detail: str
     evidence: list[str] = Field(default_factory=list)
+    locations: list[str] = Field(default_factory=list)
 
 
 class AnalyzeResponse(BaseModel):
