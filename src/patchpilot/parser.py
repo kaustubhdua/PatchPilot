@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 _HEADER = re.compile(r"^diff --git a/(.+) b/(.+)$")
 _QUOTED_HEADER = re.compile(r'^diff --git "((?:[^"\\]|\\.)*)" "((?:[^"\\]|\\.)*)"$')
-_QUOTED_PREFIX_HEADER = re.compile(r'^diff --git (a/"(?:[^"\\]|\\.)*") (b/"(?:[^"\\]|\\.)*")
+_QUOTED_PREFIX_HEADER = re.compile(r"^diff --git (a/\"(?:[^\"\\]|\\.)*\") (b/\"(?:[^\"\\]|\\.)*\")$")
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?:.*)$")
 _RENAME_TO = "rename to "
 _NEW_FILE = "new file mode "
