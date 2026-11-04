@@ -15,7 +15,7 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 - [x] Scheduled dependency audit and basic secret-pattern check
 - [ ] Run CI and verify latest result
 - [x] Expand the starter corpus to 12 versioned synthetic rule-regression cases (does not establish production detection quality)
-- [ ] Expand real Git-generated diff fixture corpus
+- [x] Expand real Git-generated diff fixture corpus with Unicode/space and tab/backslash path outputs
 - [ ] Validate full hunk counts and truncation across the full Git diff grammar
 - [x] Decode Git C-quoted UTF-8 paths and quoted file-header prefixes
 - [x] Surface malformed and incomplete hunk counts as explicit per-file and report-level warnings
