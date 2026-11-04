@@ -69,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    {finding.detail}")
         for evidence in finding.evidence:
             print(f"    Evidence: {evidence}")
+        for location in finding.locations:
+            print(f"    Location: {location}")
     print()
     print("Suggested checks:")
     for recommendation in result.recommended_tests:
