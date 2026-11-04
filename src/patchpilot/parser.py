@@ -80,11 +80,17 @@ def _unquote_git_path(path: str) -> str:
 
 
 def _header_path(value: str, prefix: str) -> str | None:
-    value = _unquote_git_path(value.strip())
+    value = value.strip()
+    if value.startswith('"'):
+        value = _unquote_git_path(value)
+        if value.startswith(prefix):
+            value = value[len(prefix) :]
+    else:
+        if value.startswith(prefix):
+            value = value[len(prefix) :]
+        value = _unquote_git_path(value)
     if value == "/dev/null":
         return None
-    if value.startswith(prefix):
-        value = value[len(prefix) :]
     return value
 
 
