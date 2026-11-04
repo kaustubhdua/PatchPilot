@@ -46,8 +46,15 @@ def _unquote_git_path(path: str) -> str:
     result: list[str] = []
     index = 0
     escapes = {
-        "a": "\a", "b": "\b", "t": "\t", "n": "\n",
-        "v": "\v", "f": "\f", "r": "\r", '"': '"', "\\": "\\",
+        "a": "\a",
+        "b": "\b",
+        "t": "\t",
+        "n": "\n",
+        "v": "\v",
+        "f": "\f",
+        "r": "\r",
+        '"': '"',
+        "\\": "\\",
     }
     while index < len(body):
         char = body[index]
