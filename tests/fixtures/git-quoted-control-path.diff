@@ -1,0 +1,7 @@
+diff --git "a/tab\tback\\slash.py" "b/tab\tback\\slash.py"
+index 2107327..68dfdbd 100644
+--- "a/tab\tback\\slash.py"
++++ "b/tab\tback\\slash.py"
+@@ -1 +1 @@
+-before()
++after()
