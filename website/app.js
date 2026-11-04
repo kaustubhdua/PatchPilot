@@ -36,6 +36,10 @@ function appendFinding(finding) {
     const evidence = safeText("div", "evidence", `Evidence: ${finding.evidence.slice(0, 3).join(" · ")}`);
     card.append(evidence);
   }
+  if (Array.isArray(finding.locations) && finding.locations.length) {
+    const locations = safeText("div", "evidence", `Changed lines: ${finding.locations.slice(0, 5).join(" · ")}`);
+    card.append(locations);
+  }
   $("finding-list").append(card);
 }
 function renderReport(data) {
