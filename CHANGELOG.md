@@ -5,6 +5,7 @@ All notable changes to PatchPilot are documented here.
 ## Unreleased
 
 ### Added
+- Decode Git C-quoted paths with escaped UTF-8 bytes and strip quoted `a/` and `b/` prefixes correctly.
 - Include source file and new-line locations separately from evidence text for risky added-line findings.
 - Expose malformed and incomplete diff hunk counts for each changed file.
 - Include report-level analysis warnings when diff sections are malformed or incomplete.
