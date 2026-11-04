@@ -13,7 +13,7 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 - [x] Additional parser regression tests
 - [x] Manual GitHub Actions diff-analysis workflow
 - [x] Scheduled dependency audit and basic secret-pattern check
-- [ ] Run CI and verify latest result
+- [x] Run CI and verify latest result (latest main commit passed CI and security checks)
 - [x] Expand the starter corpus to 12 versioned synthetic rule-regression cases (does not establish production detection quality)
 - [x] Expand real Git-generated diff fixture corpus with Unicode/space and tab/backslash path outputs
 - [ ] Validate full hunk counts and truncation across the full Git diff grammar
