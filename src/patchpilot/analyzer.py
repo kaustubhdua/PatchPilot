@@ -15,12 +15,22 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
             additions=item.additions,
             deletions=item.deletions,
             is_test=is_test_path(item.path),
+            malformed_hunks=item.malformed_hunks,
         )
         for item in parsed
     ]
     additions = sum(item.additions for item in changes)
     deletions = sum(item.deletions for item in changes)
     score, findings = evaluate_risk(parsed, changes)
+
+    warnings = [
+        (
+            f"{item.path}: {item.malformed_hunks} malformed or incomplete diff hunk(s); "
+            "reported line counts may be partial."
+        )
+        for item in changes
+        if item.malformed_hunks
+    ]
 
     if score < 25:
         level = "low"
@@ -42,24 +52,30 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
     if changes and not any(item.is_test for item in changes):
         recommendations.append("Add focused regression tests for changed behavior.")
 
+    summary = (
+        f"Inspected {len(changes)} file(s), {additions} additions and "
+        f"{deletions} deletions. Score uses static heuristics."
+    )
+    if warnings:
+        summary += f" Warning: {len(warnings)} file(s) contain malformed or incomplete hunks."
+
     return AnalyzeResponse(
         title=request.title,
         base_ref=request.base_ref,
         head_ref=request.head_ref,
         risk_score=score,
         risk_level=level,
-        summary=(
-            f"Inspected {len(changes)} file(s), {additions} additions and "
-            f"{deletions} deletions. Score uses static heuristics."
-        ),
+        summary=summary,
         files_changed=len(changes),
         additions=additions,
         deletions=deletions,
         files=changes,
         findings=findings,
         recommended_tests=recommendations,
+        analysis_warnings=warnings,
         disclaimer=(
             "Heuristic triage only; not a defect probability, security audit "
-            "or merge recommendation."
+            "or merge recommendation. Incomplete diff warnings mean reported "
+            "statistics and findings may omit changes."
         ),
     )
