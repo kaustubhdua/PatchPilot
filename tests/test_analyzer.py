@@ -164,5 +164,5 @@ def test_risky_finding_includes_file_and_new_line_number():
     )
     result = run(diff)
     finding = next(f for f in result.findings if f.rule_id == "dynamic-evaluation")
-    assert any("src/runner.py:21:" in item for item in finding.evidence)
-    assert any("eval(user_input)" in item for item in finding.evidence)
+    assert "src/runner.py:21" in finding.locations
+    assert "eval(user_input)" in finding.evidence
