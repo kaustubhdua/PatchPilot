@@ -68,9 +68,6 @@ def parse_cors_origins(value: str) -> list[str]:
     return origins
 
 
-
-
-
 MAX_ANALYZE_BODY_BYTES = 4_000_000
 
 
