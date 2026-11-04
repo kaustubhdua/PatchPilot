@@ -44,6 +44,7 @@ def test_cli_displays_incomplete_diff_warning(monkeypatch, capsys):
     assert main(["analyze"]) == 0
     output = capsys.readouterr().out
     assert "Analysis warnings:" in output
+    assert "Analysis status: INCOMPLETE" in output
     assert "app.py" in output
     assert "partial" in output
 

@@ -15,6 +15,7 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 - A hunk is counted only while its declared old/new line ranges permit it.
 - Hunk overruns, malformed headers, and incomplete ranges are recorded per file.
 - The response includes `malformed_hunks` for each file and an `analysis_warnings` list.
+- The response exposes `analysis_complete`; any malformed or incomplete hunk makes it `false`, so consumers cannot mistake a partial low score for a complete review.
 - Partial counts are not silently presented as complete: users are warned that findings and statistics may omit changes.
 - Warnings do not attempt to repair or infer missing patch content.
 - Risky added-line findings expose source locations separately from evidence text, preserving the evidence field for existing consumers.

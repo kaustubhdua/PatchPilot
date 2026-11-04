@@ -35,6 +35,7 @@ class AnalyzeResponse(BaseModel):
     head_ref: str
     risk_score: int = Field(ge=0, le=100)
     risk_level: str
+    analysis_complete: bool = True
     summary: str
     files_changed: int
     additions: int

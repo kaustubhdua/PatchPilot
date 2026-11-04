@@ -62,6 +62,7 @@ def test_binary_file_is_counted_without_fake_line_counts():
     assert result.files_changed == 1
     assert result.additions == 0
     assert result.deletions == 0
+    assert result.analysis_complete is True
 
 
 def test_empty_file_list_stays_low_and_explains_limit():
@@ -148,6 +149,7 @@ def test_analyzer_surfaces_incomplete_hunk_warning():
     )
     result = run(diff)
     assert result.files[0].malformed_hunks == 1
+    assert result.analysis_complete is False
     assert len(result.analysis_warnings) == 1
     assert "app.py" in result.analysis_warnings[0]
     assert "partial" in result.analysis_warnings[0]

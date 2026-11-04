@@ -31,6 +31,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         for item in changes
         if item.malformed_hunks
     ]
+    analysis_complete = not warnings
 
     if score < 25:
         level = "low"
@@ -57,7 +58,10 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         f"{deletions} deletions. Score uses static heuristics."
     )
     if warnings:
-        summary += f" Warning: {len(warnings)} file(s) contain malformed or incomplete hunks."
+        summary += (
+            f" Analysis is incomplete: {len(warnings)} file(s) contain malformed "
+            "or incomplete hunks; the risk score may understate unparsed changes."
+        )
 
     return AnalyzeResponse(
         title=request.title,
@@ -65,6 +69,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         head_ref=request.head_ref,
         risk_score=score,
         risk_level=level,
+        analysis_complete=analysis_complete,
         summary=summary,
         files_changed=len(changes),
         additions=additions,

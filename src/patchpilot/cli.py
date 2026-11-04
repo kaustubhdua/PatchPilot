@@ -52,6 +52,8 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"{result.title}: {result.risk_level.upper()} risk ({result.risk_score}/100)")
     print(result.summary)
+    if not result.analysis_complete:
+        print("Analysis status: INCOMPLETE — risk score may understate unparsed changes.")
     if result.analysis_warnings:
         print()
         print("Analysis warnings:")

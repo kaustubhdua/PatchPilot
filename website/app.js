@@ -44,7 +44,7 @@ function appendFinding(finding) {
 }
 function renderReport(data) {
   $("empty-state").classList.add("hidden"); $("report").classList.remove("hidden");
-  $("report-state").textContent = "ANALYSIS COMPLETE";
+  $("report-state").textContent = data.analysis_complete === false ? "ANALYSIS INCOMPLETE" : "ANALYSIS COMPLETE";
   $("risk-score").textContent = data.risk_score ?? "—";
   const level = String(data.risk_level || "unknown").toLowerCase();
   $("risk-level").textContent = level; $("risk-level").className = `risk-badge ${level}`;
