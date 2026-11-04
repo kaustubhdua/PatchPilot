@@ -19,6 +19,7 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 - [x] Decode Git C-quoted UTF-8 paths, including octal byte sequences and control escapes
 - [x] Surface malformed and incomplete hunk counts as explicit per-file and report-level warnings
 - [x] Expose explicit analysis completeness so partial diffs cannot masquerade as complete low-risk reports
+- [x] Reject wildcard/malformed CORS origins and test request-level rate-limit enforcement
 - [x] Show parser-integrity warnings in CLI output and GitHub Actions summaries
 - [x] Show risky finding source locations in CLI and GitHub Actions summaries
 - [x] Pass PR numbers and base revisions through workflow environment variables rather than shell interpolation
@@ -35,8 +36,8 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 
 ## M2 — GitHub integration
 - [x] Manual GitHub Actions workflow to analyze a selected diff and upload a report artifact
-- [x] Automatically run on pull requests and publish a concise summary (implemented; end-to-end verification pending)
-- [ ] Map findings to changed lines when supported by reliable evidence
+- [x] Automatically run on pull requests and publish a concise summary (verified on GitHub Actions)
+- [x] Map supported findings to changed lines with file and new-line evidence
 - [ ] Validate fork permissions, oversized diffs and no-diff cases end to end
 - [ ] GitHub App with minimum permissions and short-lived installation tokens, if needed
 - [ ] Verify webhook signatures and make delivery handling idempotent if webhooks are used
