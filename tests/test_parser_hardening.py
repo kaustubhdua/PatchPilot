@@ -143,9 +143,12 @@ def test_added_line_numbers_follow_hunk_ranges_and_context():
 
 def test_git_quoted_unicode_path_matches_real_git_output():
     diff = (
-        r'diff --git "a/caf\303\251.py" "b/caf\303\251.py"' "\n"
-        r'--- "a/caf\303\251.py"' "\n"
-        r'+++ "b/caf\303\251.py"' "\n"
+        r'diff --git "a/caf\303\251.py" "b/caf\303\251.py"'
+        "\n"
+        r'--- "a/caf\303\251.py"'
+        "\n"
+        r'+++ "b/caf\303\251.py"'
+        "\n"
         "@@ -1 +1 @@\n-old()\n+new()\n"
     )
     parsed = parse_unified_diff(diff)
