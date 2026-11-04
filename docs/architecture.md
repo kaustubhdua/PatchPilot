@@ -32,7 +32,7 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 - Rules use text and path heuristics; the engine does not understand program semantics.
 - Test recommendations are based on changed file extensions and presence of test paths.
 - The in-memory rate limiter is per process and is not a distributed quota.
-- The parser is intentionally lightweight and is not a complete implementation of every Git diff extension.
+- The parser is intentionally lightweight and is not a complete implementation of every Git diff extension. It decodes C-quoted UTF-8 paths (including octal byte escapes) and handles quoted file-header prefixes and paths containing spaces.
 - No GitHub App, persistent history, dashboard, LLM integration, or code execution is part of the current MVP.
 
 ## Extension guidance
