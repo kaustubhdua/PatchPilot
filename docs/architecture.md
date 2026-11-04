@@ -7,7 +7,7 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 1. FastAPI validates an `AnalyzeRequest` with a bounded diff.
 2. `parser.py` extracts file metadata, changed-line counts, added lines, and malformed/incomplete hunk counts.
 3. `analyzer.py` builds file summaries, surfaces parser-integrity warnings, and invokes deterministic rules.
-4. `rules.py` produces findings and a heuristic score.
+4. `rules.py` produces findings, preserves matched source text as evidence, attaches file/new-line locations for risky added-line patterns, and calculates a heuristic score.
 5. The API or CLI serializes the result; the web workbench displays warnings alongside the summary.
 
 ## Analysis integrity
@@ -17,6 +17,7 @@ PatchPilot is a deterministic diff-triage service. The MVP accepts unified diff 
 - The response includes `malformed_hunks` for each file and an `analysis_warnings` list.
 - Partial counts are not silently presented as complete: users are warned that findings and statistics may omit changes.
 - Warnings do not attempt to repair or infer missing patch content.
+- Risky added-line findings expose source locations separately from evidence text, preserving the evidence field for existing consumers.
 
 ## Trust boundaries
 
