@@ -10,8 +10,10 @@ import re
 from dataclasses import dataclass, field
 
 _HEADER = re.compile(r"^diff --git a/(.+) b/(.+)$")
-_QUOTED_HEADER = re.compile(r'^diff --git "((?:[^"\\]|\\.)*)" "((?:[^"\\]|\\.)*)"
-_HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?:.*)$")
+_QUOTED_HEADER = re.compile(r'^diff --git "((?:[^"\\]|\\.)*)" "((?:[^"\\]|\\.)*)"$')
+_QUOTED_PREFIX_HEADER = re.compile(
+    r'^diff --git (a/"(?:[^"\\]|\\.)*") (b/"(?:[^"\\]|\\.)*")$'
+)
 _RENAME_TO = "rename to "
 _NEW_FILE = "new file mode "
 _DELETED_FILE = "deleted file mode "
@@ -36,13 +38,12 @@ class ParsedFile:
 
 def _unquote_git_path(path: str) -> str:
     """Decode Git's C-style quoted paths, including escaped UTF-8 bytes."""
-    if len(path) < 2 or path[0] != '"' or path[-1] != '"':
-        return path
     prefix = ""
-    if path.startswith(("a/\"", "b/\"")):
+    if path.startswith(('a/"', 'b/"')):
         prefix, path = path[:2], path[2:]
-    if len(path) < 2 or path[0] != "\"" or path[-1] != "\"":
+    if len(path) < 2 or path[0] != '"' or path[-1] != '"':
         return prefix + path
+
     body = path[1:-1]
     result: list[str] = []
     index = 0
@@ -78,7 +79,6 @@ def _unquote_git_path(path: str) -> str:
             result.append(escapes[nxt])
             index += 2
             continue
-        # Preserve unknown escapes instead of silently corrupting the path.
         result.extend(("\\", nxt))
         index += 2
     return prefix + "".join(result)
