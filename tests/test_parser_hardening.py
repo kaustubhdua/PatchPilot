@@ -195,3 +195,14 @@ def test_real_git_generated_quoted_unicode_and_space_path_fixture():
     assert parsed[0].additions == 2
     assert parsed[0].deletions == 2
     assert parsed[0].added_lines == ["def new():", "    return 2"]
+
+
+def test_real_git_generated_control_and_backslash_path_fixture():
+    fixture = Path(__file__).parent / "fixtures" / "git-quoted-control-path.diff"
+    parsed = parse_unified_diff(fixture.read_text(encoding="utf-8"))
+    assert len(parsed) == 1
+    assert parsed[0].old_path == "tab\tback\\slash.py"
+    assert parsed[0].path == "tab\tback\\slash.py"
+    assert parsed[0].additions == 1
+    assert parsed[0].deletions == 1
+    assert parsed[0].added_lines == ["after()"]
