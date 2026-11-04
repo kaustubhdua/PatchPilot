@@ -25,6 +25,7 @@ class ParsedFile:
     additions: int = 0
     deletions: int = 0
     added_lines: list[str] = field(default_factory=list)
+    added_line_numbers: list[int] = field(default_factory=list)
     binary: bool = False
     renamed: bool = False
     deleted: bool = False
@@ -74,7 +75,7 @@ def _header_path(value: str, prefix: str) -> str | None:
 
 
 def parse_unified_diff(diff: str) -> list[ParsedFile]:
-    """Parse file metadata and line counts from a unified diff.
+    """Parse file metadata, line counts, and added-line locations.
 
     Incomplete or malformed hunks are not guessed at. This lightweight parser
     does not validate the full Git diff grammar; callers should treat the
@@ -83,6 +84,7 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
     files: list[ParsedFile] = []
     current: ParsedFile | None = None
     old_remaining = new_remaining = 0
+    new_line_number = 0
     in_hunk = False
 
     for line in diff.splitlines():
@@ -143,6 +145,7 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
                 continue
             old_remaining = int(match.group(2) or "1")
             new_remaining = int(match.group(4) or "1")
+            new_line_number = int(match.group(3))
             in_hunk = old_remaining > 0 or new_remaining > 0
             continue
         if not in_hunk:
@@ -159,6 +162,8 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
                 continue
             current.additions += 1
             current.added_lines.append(line[1:])
+            current.added_line_numbers.append(new_line_number)
+            new_line_number += 1
             new_remaining -= 1
         elif line.startswith("-"):
             if old_remaining <= 0:
@@ -174,6 +179,7 @@ def parse_unified_diff(diff: str) -> list[ParsedFile]:
                 continue
             old_remaining -= 1
             new_remaining -= 1
+            new_line_number += 1
         else:
             current.malformed_hunks += 1
             in_hunk = False
