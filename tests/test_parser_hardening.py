@@ -121,3 +121,21 @@ def test_hunk_lines_that_look_like_file_headers_stay_in_hunk():
     assert parsed[0].additions == 1
     assert parsed[0].deletions == 1
     assert parsed[0].added_lines == ["++ this is added content"]
+
+
+def test_added_line_numbers_follow_hunk_ranges_and_context():
+    diff = (
+        "diff --git a/src/app.py b/src/app.py\n"
+        "--- a/src/app.py\n+++ b/src/app.py\n"
+        "@@ -10,3 +20,4 @@\n"
+        " context()\n"
+        "-old()\n"
+        "+new_one()\n"
+        "+new_two()\n"
+        "@@ -30 +31 @@\n"
+        "-before()\n"
+        "+after()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].added_lines == ["new_one()", "new_two()", "after()"]
+    assert parsed[0].added_line_numbers == [21, 22, 31]
