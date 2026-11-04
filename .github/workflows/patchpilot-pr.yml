@@ -88,9 +88,12 @@ jobs:
               "",
               report["summary"],
               "",
-              "### Findings",
-              "",
           ]
+          if report.get("analysis_warnings"):
+              summary.extend(["### Analysis warnings", ""])
+              summary.extend(f"- WARNING: {warning}" for warning in report["analysis_warnings"])
+              summary.append("")
+          summary.extend(["### Findings", ""])
           for finding in report["findings"]:
               evidence = "; ".join(finding.get("evidence", [])[:3])
               summary.append(f"- **{finding['severity'].upper()} · {finding['rule_id']} — {finding['title']}**")
