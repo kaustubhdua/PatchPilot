@@ -68,6 +68,77 @@ def parse_cors_origins(value: str) -> list[str]:
     return origins
 
 
+MAX_ANALYZE_BODY_BYTES = 4_000_000
+
+
+class _RequestBodyTooLarge(Exception):
+    """Raised when a streamed analysis request exceeds its byte budget."""
+
+
+class AnalyzeBodyLimitMiddleware:
+    """Bound analysis request bytes before JSON parsing or Pydantic validation."""
+
+    def __init__(self, app, max_bytes: int = MAX_ANALYZE_BODY_BYTES) -> None:
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send) -> None:
+        if (
+            scope.get("type") != "http"
+            or scope.get("path") != "/v1/analyze"
+            or scope.get("method") != "POST"
+        ):
+            await self.app(scope, receive, send)
+            return
+
+        headers = {key.lower(): value for key, value in scope.get("headers", [])}
+        raw_length = headers.get(b"content-length")
+        if raw_length is not None:
+            try:
+                content_length = int(raw_length)
+            except ValueError:
+                response = JSONResponse(
+                    status_code=400,
+                    content={"detail": "Invalid Content-Length header."},
+                )
+                await response(scope, receive, send)
+                return
+            if content_length < 0:
+                response = JSONResponse(
+                    status_code=400,
+                    content={"detail": "Invalid Content-Length header."},
+                )
+                await response(scope, receive, send)
+                return
+            if content_length > self.max_bytes:
+                response = JSONResponse(
+                    status_code=413,
+                    content={"detail": "Analysis request body exceeds the byte limit."},
+                )
+                await response(scope, receive, send)
+                return
+
+        received = 0
+
+        async def limited_receive():
+            nonlocal received
+            message = await receive()
+            if message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > self.max_bytes:
+                    raise _RequestBodyTooLarge
+            return message
+
+        try:
+            await self.app(scope, limited_receive, send)
+        except _RequestBodyTooLarge:
+            response = JSONResponse(
+                status_code=413,
+                content={"detail": "Analysis request body exceeds the byte limit."},
+            )
+            await response(scope, receive, send)
+
+
 # Configure exact trusted website origins at deployment time; do not use wildcard
 # origins for a public API. Invalid configuration fails at startup.
 _cors_origins = parse_cors_origins(os.getenv("PATCHPILOT_CORS_ORIGINS", ""))
@@ -79,6 +150,9 @@ if _cors_origins:
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "Accept"],
     )
+
+# Bound both declared and streamed bodies before FastAPI parses the JSON payload.
+app.add_middleware(AnalyzeBodyLimitMiddleware)
 
 
 class InMemoryRateLimiter:

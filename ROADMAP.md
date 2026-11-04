@@ -4,6 +4,7 @@ PatchPilot is built in incremental, testable milestones. A checked item means th
 
 ## M0 — Reliable foundation
 - [x] FastAPI API and Pydantic input limits
+- [x] Enforce a 4 MB streamed request-body limit before JSON parsing
 - [x] Deterministic baseline rules and evidence
 - [x] Unit/API tests and CI workflow
 - [x] Non-root container and health check

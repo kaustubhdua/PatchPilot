@@ -5,7 +5,7 @@ All notable changes to PatchPilot are documented here.
 ## Unreleased
 
 ### Added
-- Expose an explicit completeness flag and warn that risk scores from malformed or incomplete diffs are partial.
+- Enforce a 4 MB request-body limit for analysis requests, including streamed bodies without Content-Length.\n- Expose an explicit completeness flag and warn that risk scores from malformed or incomplete diffs are partial.
 - Include source file and new-line locations separately from evidence text for risky added-line findings.
 - Expose malformed and incomplete diff hunk counts for each changed file.
 - Include report-level analysis warnings when diff sections are malformed or incomplete.
