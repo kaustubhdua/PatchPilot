@@ -167,3 +167,15 @@ def test_quoted_diff_header_and_file_headers_strip_prefix_inside_quotes():
     assert len(parsed) == 1
     assert parsed[0].old_path == "file name.py"
     assert parsed[0].path == "file name.py"
+
+
+
+def test_git_quoted_control_character_escapes():
+    diff = (
+        'diff --git a/"tab\\tback\\bvertical\\vform\\falert\\a.py" b/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
+        '--- a/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
+        '+++ b/"tab\\tback\\bvertical\\vform\\falert\\a.py"\n'
+        "@@ -0,0 +1 @@\n+safe()\n"
+    )
+    parsed = parse_unified_diff(diff)
+    assert parsed[0].path == "tab\tback\bvertical\vform\falert\a.py"
