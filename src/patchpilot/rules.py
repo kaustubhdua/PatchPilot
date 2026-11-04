@@ -137,9 +137,15 @@ def evaluate_risk(
             [f"{additions} additions", f"{deletions} deletions"],
         )
 
-    added_text = "\n".join(line for item in parsed for line in item.added_lines)
     for pattern, rule, title, detail in RISKY_PATTERNS:
-        matches = [line.strip() for line in added_text.splitlines() if pattern.search(line)]
+        matches = [
+            f"{item.path}:{line_number}: {line.strip()}"
+            for item in parsed
+            for line, line_number in zip(
+                item.added_lines, item.added_line_numbers, strict=True
+            )
+            if pattern.search(line)
+        ]
         if matches:
             add(rule, "high", 18, title, detail, matches)
 
