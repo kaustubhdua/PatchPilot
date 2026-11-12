@@ -109,11 +109,11 @@ Example request body:
   "title": "Harden request validation",
   "base_ref": "main",
   "head_ref": "feature/validation",
-  "diff": "diff --git a/src/example.py b/src/example.py\\n--- a/src/example.py\\n+++ b/src/example.py\\n@@ -1 +1 @@\\n-old()\\n+new()"
+  "diff": "diff --git a/src/example.py b/src/example.py\n--- a/src/example.py\n+++ b/src/example.py\n@@ -1 +1 @@\n-old()\n+new()"
 }
 ~~~
 
-Input is limited to 500,000 characters and request bodies are capped at 4 MB before JSON parsing and unknown request fields are rejected. Responses include \`analysis_complete\`; it is \`false\` when any file has malformed or incomplete hunks, and the displayed risk score must then be treated as partial. The in-memory rate limiter allows 60 requests per client IP per 60-second window **per process**. It is a basic safety rail, not a shared limiter for multi-worker or public production deployments.
+Input is limited to 500,000 characters and request bodies are capped at 4 MB before JSON parsing and unknown request fields are rejected. Responses include `analysis_complete`; it is `false` when any file has malformed or incomplete hunks, and the displayed risk score must then be treated as partial. The in-memory rate limiter allows 60 requests per client IP per 60-second window **per process**. It is a basic safety rail, not a shared limiter for multi-worker or public production deployments.
 
 ## What it does and does not do
 

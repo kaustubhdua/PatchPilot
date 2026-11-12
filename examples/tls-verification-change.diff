@@ -2,7 +2,7 @@ diff --git a/src/auth/session.py b/src/auth/session.py
 index 3a45a90..f5c3f21 100644
 --- a/src/auth/session.py
 +++ b/src/auth/session.py
-@@ -1,4 +1,5 @@
+@@ -1,2 +1,3 @@
  def build_session(config):
 -    return make_session(verify=True)
 +    # Review this security-sensitive configuration change before merging.
