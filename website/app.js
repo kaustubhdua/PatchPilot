@@ -2,7 +2,7 @@ const SAMPLE_DIFF = `diff --git a/src/auth.py b/src/auth.py
 index 11aa111..22bb222 100644
 --- a/src/auth.py
 +++ b/src/auth.py
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,6 @@
  import os
 +import subprocess
  
